@@ -12,8 +12,8 @@ public abstract class SubCommand {
 
     public abstract String getSyntax();
 
-    public abstract void perform(Player player, String args[]);
+    public abstract void perform(Player player, String[] args);
 
-    public abstract List<String> getSubcommandArguments(Player player, String args[]);
+    public abstract List<String> getSubcommandArguments(Player player, String[] args);
 
 }

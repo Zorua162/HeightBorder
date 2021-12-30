@@ -1,10 +1,8 @@
 package me.zorua162.heightborder.commands.subcommands;
 
 import me.zorua162.heightborder.HeightBorder;
-import me.zorua162.heightborder.border.Border;
 import me.zorua162.heightborder.commands.SubCommand;
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -47,33 +45,32 @@ public class CreateCommand extends SubCommand {
 
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
-        if (args.length == 2){
-            // startHeight completion
-            return Arrays.asList("256", "128", "64", "0");
-        } else if (args.length == 3){
-            // endHeight completion
-            return Arrays.asList("0", "5", "64", "128", "256");
-        } else if (args.length == 4){
-            // direction
-            return Arrays.asList("up", "down");
-        } else if (args.length == 5) {
-            // Velocity
-           return Arrays.asList("7", "60");
-        } else if (args.length == 6) {
-            // x1
-            return Arrays.asList("5");
-        }else if (args.length == 7) {
-            // z1
-            return Arrays.asList("5");
-        }else if (args.length == 8) {
-            // x2
-            return Arrays.asList("-5");
-        }else if (args.length == 9) {
-            // z2
-            return Arrays.asList("-5");
-        } else if (args.length == 10) {
-            // Type
-            return Arrays.asList("damage", "break");
+        switch (args.length) {
+            case 2:
+                // startHeight completion
+                return Arrays.asList("256", "128", "64", "0");
+            case 3:
+                // endHeight completion
+                return Arrays.asList("0", "5", "64", "128", "256");
+            case 4:
+                // direction
+                return Arrays.asList("up", "down");
+            case 5:
+                // Velocity
+                return Arrays.asList("7", "60");
+            case 6:
+            case 7:
+                // z1
+                // x1
+                return Arrays.asList("5", "50");
+            case 8:
+            case 9:
+                // z2
+                // x2
+                return Arrays.asList("-5", "50");
+            case 10:
+                // Type
+                return Arrays.asList("damage", "break");
         }
         return null;
     }
@@ -87,14 +84,11 @@ public class CreateCommand extends SubCommand {
                     "velocity (in blocks per minute), x1, z1, x2, z2, Type");
             return;
         }
-        if (args[3] == "up" || args[3] == "down") {
+        if (!args[3].equals("up") && !args[3].equals("down")) {
             player.sendMessage("Must give direction for border to travel up or down " + args[3] + " given.");
             return;
         }
 
-        // TODO More validation for numbers such as RGB 0<=x<256
-        // TODO specify particle colour as words for example "red, green blue"
-        // TODO output the id of the world border that was created
         startHeight = Double.parseDouble(args[1]);
         endHeight = Double.parseDouble(args[2]);
         direction = args[3];

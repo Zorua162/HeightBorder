@@ -1,7 +1,6 @@
 package me.zorua162.heightborder.border;
 
 
-import jdk.internal.icu.text.UnicodeSet;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -15,8 +14,6 @@ import static org.bukkit.util.NumberConversions.round;
 
 @SerializableAs("Border")
 public class Border implements ConfigurationSerializable {
-    // Manager for getting constants such as the colorMap
-    BorderManager borderManager;
     // Things that need to be stored
     double currentHeight;
     // Height at which border stops moving
@@ -25,10 +22,10 @@ public class Border implements ConfigurationSerializable {
     // top or bottom, stored as "up" or "bottom" in direction
     String direction;
     // velocity
-    double velocity = 0;
-    // front left and back right position: flpos brpos
-    Location flpos;
-    Location brpos;
+    double velocity;
+    // front left and back right position: pos1 pos2
+    Location pos1;
+    Location pos2;
     // Particle colour (red default, but this will be changed if it isn't moving)
     Color particleColour = Color.fromRGB(255, 0, 0);
     // Particle colours change from one to the other, gives a more varied colour to the world border
@@ -41,13 +38,13 @@ public class Border implements ConfigurationSerializable {
 
     int previousBreakLayer = (int) currentHeight;
 
-    public Border(double currentHeight, double endHeight, String direction, double velocity, Location flpos, Location brpos, String type) {
+    public Border(double currentHeight, double endHeight, String direction, double velocity, Location pos1, Location pos2, String type) {
         this.currentHeight = currentHeight;
         this.endHeight = endHeight;
         this.direction = direction;
         this.velocity = velocity;
-        this.flpos = flpos;
-        this.brpos = brpos;
+        this.pos1 = pos1;
+        this.pos2 = pos2;
         this.type = type;
         this.log = Bukkit.getLogger();
         putMapColours();
@@ -59,14 +56,15 @@ public class Border implements ConfigurationSerializable {
         colorMap.put("stopped", Color.fromRGB(0, 0, 255));
     }
 
+    @Override
     public Map<String, Object> serialize() {
-        LinkedHashMap result = new LinkedHashMap();
-        result.put("currentheight", Double.valueOf(this.getCurrentHeight()));
-        result.put("endheight", Double.valueOf(this.getEndHeight()));
+        LinkedHashMap<String, Object> result = new LinkedHashMap<>();
+        result.put("currentheight", this.getCurrentHeight());
+        result.put("endheight", this.getEndHeight());
         result.put("direction", String.valueOf(this.getDirection()));
-        result.put("velocity", Double.valueOf(this.getVelocity()));
-        result.put("flpos", this.getFLPos());
-        result.put("brpos", this.getBRPos());
+        result.put("velocity", this.getVelocity());
+        result.put("pos1", this.getPos1());
+        result.put("pos2", this.getPos2());
         return result;
     }
 
@@ -78,12 +76,12 @@ public class Border implements ConfigurationSerializable {
         return currentHeight;
     }
 
-    private Location getBRPos() {
-        return this.brpos;
+    private Location getPos2() {
+        return this.pos2;
     }
 
-    private Location getFLPos() {
-        return this.flpos;
+    private Location getPos1() {
+        return this.pos1;
     }
 
     private String getDirection() {
@@ -100,70 +98,62 @@ public class Border implements ConfigurationSerializable {
         double endHeight = 128;
         String direction = "down";
         double velocity = 0;
-        Location flpos = null;
-        Location brpos = null;
+        Location pos1 = null;
+        Location pos2 = null;
         String type = "damage";
 
         if (args.containsKey("currentheight")) {
-            currentHeight = ((Double) args.get("currentheight")).doubleValue();
+            currentHeight = (Double) args.get("currentheight");
         }
 
         if (args.containsKey("endheight")) {
-            endHeight = ((Double) args.get("endheight")).doubleValue();
+            endHeight = (Double) args.get("endheight");
         }
 
         if(args.containsKey("direction")) {
-            direction = ((String)args.get("direction")).toString();
+            direction = ((String)args.get("direction"));
         }
 
         if(args.containsKey("velocity")) {
-            velocity = ((Double)args.get("velocity")).doubleValue();
+            velocity = (Double) args.get("velocity");
         }
 
-        if(args.containsKey("flpos")) {
-            flpos = ((Location)args.get("flpos"));
+        if(args.containsKey("pos1")) {
+            pos1 = ((Location)args.get("pos1"));
         }
 
-        if(args.containsKey("brpos")) {
-            brpos = ((Location)args.get("brpos"));
+        if(args.containsKey("pos2")) {
+            pos2 = ((Location)args.get("pos2"));
         }
 
         if(args.containsKey("type")) {
             type = ((String)args.get("type"));
         }
-        return new Border(currentHeight, endHeight, direction, velocity, flpos, brpos, type);
+        return new Border(currentHeight, endHeight, direction, velocity, pos1, pos2, type);
     }
 
     public String getListInfo() {
         String outData = "y = " + currentHeight + "\nend height = " + endHeight + "\ndirection = " + direction ;
-        outData = outData + "\nvelocity = " + velocity + "\nflpos = " + flpos.toString() + "\nbrpos = " + brpos.toString();
+        outData = outData + "\nvelocity = " + velocity + "\npos1 = " + pos1.toString() + "\npos2 = " + pos2.toString();
         outData = outData + "\nparticleColour = " + particleColour.toString() + "\ntype = " + type;
         return outData;
     }
 
     private int getMax(int n1, int n2) {
-        if (n1 > n2) {
-            return n1;
-        } else {
-            return n2;
-        }
+        return Math.max(n1, n2);
     }
 
     private int getMin(int n1, int n2) {
-        if (n1 < n2) {
-            return n1;
-        } else {
-            return n2;
-        }
+        return Math.min(n1, n2);
     }
 
     private List<Integer> getBorders(){
         List<Integer> outList;
         // Get positions that make up corner of the border to be shown
-        int x1 = flpos.getBlockX();
-        int x2 = brpos.getBlockX();
-        int z1 = flpos.getBlockZ();
-        int z2 = brpos.getBlockZ();
+        int x1 = pos1.getBlockX();
+        int x2 = pos2.getBlockX();
+        int z1 = pos1.getBlockZ();
+        int z2 = pos2.getBlockZ();
         // set up for for loop
         int startx = getMin(x1, x2);
         int endx = getMax(x1, x2);
@@ -187,7 +177,7 @@ public class Border implements ConfigurationSerializable {
             return;
         }
 
-        World world = flpos.getWorld();
+        World world = pos1.getWorld();
         // Only this set number of particles is created to reduce client lag
         int numberOfParticles = 100;
         // Scale number of particles to the required size
@@ -249,7 +239,7 @@ public class Border implements ConfigurationSerializable {
             return;
         }
         // get players in border's world and damage if outside of it
-        List<Player> players = flpos.getWorld().getPlayers();
+        List<Player> players = pos1.getWorld().getPlayers();
         damageTick = damageTick + 1;
         if (damageTick == damagePause){
             damageTick = 0;
@@ -271,7 +261,7 @@ public class Border implements ConfigurationSerializable {
         if (!type.equals("break")){
             return;
         }
-        World world = flpos.getWorld();
+        World world = pos1.getWorld();
         List<Integer> borders = getBorders();
         int startx = borders.get(0);
         int endx = borders.get(1);
@@ -290,8 +280,44 @@ public class Border implements ConfigurationSerializable {
         // velocity is in blocks per minute
         // velocity/60 = bps
         if ((int) currentHeight != previousBreakLayer) {
-            log.info("start breaking current = " + (int) currentHeight + "previous = " +  previousBreakLayer);
             previousBreakLayer = (int) currentHeight;
         }
+    }
+
+    public void setCurrentHeight(double value) {
+        currentHeight = value;
+    }
+
+    public void setEndHeight(double value) {
+        endHeight = value;
+    }
+
+    public void setDirection(String value) {
+        direction = value;
+    }
+
+    public void setVelocity(double value) {
+        velocity = value;
+    }
+
+    public void setPos(String pos, String value) {
+        switch (pos) {
+            case "pos1x":
+                pos1.setX(Double.parseDouble(value));
+            case "pos1z":
+                pos1.setZ(Double.parseDouble(value));
+            case "pos2x":
+                pos2.setX(Double.parseDouble(value));
+            case "pos2z":
+                pos2.setZ(Double.parseDouble(value));
+        }
+    }
+
+    public void setType(String value) {
+        type = value;
+    }
+
+    public void setDamagePause(String value) {
+        damagePause = Integer.parseInt(value);
     }
 }

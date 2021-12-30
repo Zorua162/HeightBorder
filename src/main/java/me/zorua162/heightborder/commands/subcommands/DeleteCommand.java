@@ -41,11 +41,6 @@ public class DeleteCommand extends SubCommand {
 
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
-        ArrayList<String> deleteIds = new ArrayList<>();
-        int end = plugin.borderManager.getBorderListSize();
-        for (int i=1; i<=end; i++){
-           deleteIds.add(String.valueOf(i));
-        }
-        return deleteIds;
+        return plugin.borderManager.getBorderIdList();
     }
 }

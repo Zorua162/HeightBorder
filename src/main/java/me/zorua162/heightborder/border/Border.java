@@ -1,6 +1,7 @@
 package me.zorua162.heightborder.border;
 
 
+import me.zorua162.heightborder.HeightBorder;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
@@ -319,5 +320,14 @@ public class Border implements ConfigurationSerializable {
 
     public void setDamagePause(String value) {
         damagePause = Integer.parseInt(value);
+    }
+
+    public void showWarning(HeightBorder plugin) {
+        // show the red "border near" warning to all players
+        // Currently show warning no matter the border type
+        List<Player> players = pos1.getWorld().getPlayers();
+        for (Player player: players) {
+            plugin.worldBorderApi.sendRedScreenForSeconds(player, (long) 0.1, plugin);
+        }
     }
 }

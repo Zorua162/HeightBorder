@@ -1,7 +1,9 @@
 package me.zorua162.heightborder;
 
+import com.github.yannicklamprecht.worldborder.api.WorldBorderApi;
 import me.zorua162.heightborder.border.BorderManager;
 import me.zorua162.heightborder.commands.CommandManager;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class HeightBorder extends JavaPlugin {
@@ -21,10 +23,8 @@ public final class HeightBorder extends JavaPlugin {
     // Implement with border "type" being either "break" or "damage"
     //
     // TODO list:
-    // start: start the border moving
-    // stop: stop the border from moving
     // reorder todo list
-    // edit: edit border's variables
+    // Player world border warning indicator thingy
     // save to file
     // load from file on enable
     // display: needs improved configuration
@@ -37,6 +37,7 @@ public final class HeightBorder extends JavaPlugin {
     // Custom death message by checking PlayerDeathEvent
 
     public BorderManager borderManager;
+    public WorldBorderApi worldBorderApi;
 
     @Override
     public void onEnable() {
@@ -45,6 +46,19 @@ public final class HeightBorder extends JavaPlugin {
         borderManager.setup();
         getCommand("heightborder").setExecutor(new CommandManager(this));
         // TODO reload from file and with saved wbders
+        registerWorldBorderAPI();
+    }
+
+    private void registerWorldBorderAPI() {
+        RegisteredServiceProvider<WorldBorderApi> worldBorderApiRegisteredServiceProvider = getServer().getServicesManager().getRegistration(WorldBorderApi.class);
+
+        if (worldBorderApiRegisteredServiceProvider == null) {
+            getLogger().info("API not found");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        worldBorderApi = worldBorderApiRegisteredServiceProvider.getProvider();
     }
 
     @Override

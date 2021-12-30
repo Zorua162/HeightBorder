@@ -27,6 +27,7 @@ public class BorderManager {
         BukkitTask moveTask;
         BukkitTask damageTask;
         BukkitTask breakTask;
+        BukkitTask showWarning;
         // Kick off border display task
         displayTask = plugin.getServer().getScheduler().runTaskTimer(plugin,
                 () -> borderArray.forEach(this::displayBorder), 0, 20L);
@@ -36,7 +37,13 @@ public class BorderManager {
                 () -> borderArray.forEach(this::borderDamage), 0, 1L);
         breakTask = plugin.getServer().getScheduler().runTaskTimer(plugin,
                 () -> borderArray.forEach(this::borderBreakBlocks), 0, 1L);
+        showWarning = plugin.getServer().getScheduler().runTaskTimer(plugin,
+                () -> borderArray.forEach(this::showBorderWarning), 0, 1L);
 
+    }
+
+    private void showBorderWarning(Border border) {
+       border.showWarning(plugin);
     }
 
     private void borderBreakBlocks(Border border) {

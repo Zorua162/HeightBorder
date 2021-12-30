@@ -1,0 +1,10 @@
+name: HeightBorder
+version: ${project.version}
+main: me.zorua162.heightborder.HeightBorder
+api-version: 1.18
+commands:
+  heightborder:
+    description: The main height border comand
+    usage: /<command> <subcommands>
+    permission: world-border.command.heightborder
+    aliases: ["hb"]

@@ -205,8 +205,10 @@ public class Border implements ConfigurationSerializable {
         World world = pos1.getWorld();
         // Only this set number of particles is created to reduce client lag
         // Scale number of particles to the required size
-        int stepx = (endx-startx)/round(Math.sqrt(numberOfParticles));
-        int stepz = (endz-startz)/round(Math.sqrt(numberOfParticles));
+
+        // Calculate step size and if it would be less than 1 then set it to 1
+        int stepx = getStep(startx, endx);
+        int stepz = getStep(startz, endz);
         //
         for (int x=startx; x < endx + stepx; x = x + stepx) {
            for (int z=startz; z < endz + stepz; z = z + stepz) {
@@ -219,6 +221,15 @@ public class Border implements ConfigurationSerializable {
                        1, dustOptions, true);
 
            }
+        }
+    }
+
+    private int getStep(int startx, int endx) {
+        double checkStepX = (endx - startx) / Math.sqrt(numberOfParticles);
+        if (checkStepX < 1) {
+            return 1;
+        } else {
+            return (int) checkStepX;
         }
     }
 

@@ -1,8 +1,10 @@
 package me.zorua162.heightborder;
 
+import me.zorua162.heightborder.border.Border;
 import me.zorua162.heightborder.border.BorderManager;
 import me.zorua162.heightborder.commands.CommandManager;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class HeightBorder extends JavaPlugin {
@@ -22,17 +24,23 @@ public final class HeightBorder extends JavaPlugin {
     // Implement with border "type" being either "break" or "damage"
     //
     // TODO list:
-    // save to file
-    // load from file on enable
+    // save to file:
+    //      make number of particles per border editable (but with a config editable default)
+    //      moving colour
+    //      stopped colour
+    //      damage tick? (although is per border now so probably not)
+    //
     // display: needs improved configuration
-    // load from file on reload (if at all possible)
+    // display, break and damage should each be a boolean field, so they can be used together or seperatly
     //
     // Possible later additions:
+    // Show break block animation on blocks before breaking them
     // Make particle colour configurable from config
-    // Make damage tick config editable
+    // Tick times of all tasks editable, either via config and pre gen or similar solution to damagepause
+
     //
     // Custom death message by checking PlayerDeathEvent
-    FileConfiguration config = getConfig();
+    FileConfiguration config;
     public BorderManager borderManager;
 
     @Override
@@ -40,24 +48,30 @@ public final class HeightBorder extends JavaPlugin {
         // Plugin startup logic
         setupConfig();
         borderManager = new BorderManager(this);
-        borderManager.setup();
+        borderManager.setup(config);
         getCommand("heightborder").setExecutor(new CommandManager(this));
         // TODO reload from file and with saved wbders
     }
 
     private void setupConfig() {
-        config.addDefault("youAreAwesome", true);
+        ConfigurationSerialization.registerClass(Border.class);
+        config = getConfig();
+        config.addDefault("numberOfParticles", 100);
         config.options().copyDefaults(true);
-        saveConfig();
         this.getLogger().info("" + config.getBoolean("youAreAwesome"));
-        config.set("youAreAwesome", false);
         saveConfig();
     }
 
+    public FileConfiguration getCurrentConfig() {
+        return config;
+    }
 
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        // Save all current world border states so they don't reset to start positions
+        borderManager.saveBorders();
+
     }
 
     public BorderManager getBorderManager(){

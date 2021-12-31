@@ -36,7 +36,7 @@ public class ListCommand extends SubCommand {
 
         //TODO get the list input here
 
-        player.sendMessage("Current border list: " + plugin.borderManager.getBorderList());
+        player.sendMessage("Current border list: " + plugin.borderManager.getBorderListString());
     }
 
     @Override

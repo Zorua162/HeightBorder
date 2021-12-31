@@ -22,7 +22,8 @@ public class SetCommand extends SubCommand {
             "pos2x",
             "pos2z",
             "type",
-            "damagepause");
+            "damagepause",
+            "numberofparticles");
 
     public SetCommand(HeightBorder plugin) {
         this.plugin = plugin;
@@ -63,6 +64,7 @@ public class SetCommand extends SubCommand {
             }
         }
         player.sendMessage(outString.toString());
+        plugin.borderManager.saveBorders();
     }
 
     @Override
@@ -96,6 +98,8 @@ public class SetCommand extends SubCommand {
                     return Arrays.asList("break", "damage");
                 case "damagepause":
                     return Collections.singletonList("20");
+                case "numberofparticles":
+                    return Collections.singletonList("100");
             }
             return Collections.singletonList("unknown");
         }

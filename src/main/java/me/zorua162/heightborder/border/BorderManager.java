@@ -5,6 +5,7 @@ import me.zorua162.heightborder.HeightBorder;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
@@ -16,17 +17,32 @@ public class BorderManager {
 
     ArrayList<Border> borderArray = new ArrayList<>();
     HeightBorder plugin;
+    int numberOfParticles;
 
 
     public BorderManager(HeightBorder plugin){
         this.plugin = plugin;
     }
 
-    public void setup() {
+    public void setup(FileConfiguration config) {
         BukkitTask displayTask;
         BukkitTask moveTask;
         BukkitTask damageTask;
         BukkitTask breakTask;
+
+
+        // Load the boarder list
+        ArrayList<Border> configBorderList = (ArrayList<Border>) plugin.getConfig().get("borderList");
+        // Load default number of particles for a border to use to display itself
+        numberOfParticles = config.getInt("numberOfParticles");
+        if (configBorderList != null){
+            borderArray = configBorderList;
+            plugin.getLogger().info(String.valueOf(configBorderList));
+        } else {
+            Logger logger = plugin.getLogger();
+            logger.warning("Could not load borders from save file config.yml");
+        }
+
         // Kick off border display task
         displayTask = plugin.getServer().getScheduler().runTaskTimer(plugin,
                 () -> borderArray.forEach(this::displayBorder), 0, 20L);
@@ -57,12 +73,13 @@ public class BorderManager {
 
     public Border createBorder(double startHeight, double endHeight, String direction, double velocity, Location flpos,
                                Location brpos, String type){
-        Border border = new Border(startHeight, endHeight, direction, velocity, flpos, brpos, type);
+        Border border = new Border(startHeight, endHeight, direction, velocity, flpos, brpos, type, numberOfParticles);
         borderArray.add(border);
+        saveBorders();
         return border;
     }
 
-    public String getBorderList() {
+    public String getBorderListString() {
         String borderList = "";
         int i = 0;
         for (Border border: borderArray) {
@@ -80,7 +97,14 @@ public class BorderManager {
           return "Use id 1-n not index";
         }
        borderArray.remove(intId-1);
+       saveBorders();
        return "Success";
+    }
+
+    public void saveBorders() {
+        FileConfiguration config = plugin.getConfig();
+        config.set("borderList", borderArray);
+        plugin.saveConfig();
     }
 
     public List<String> getBorderIdList() {
@@ -129,6 +153,9 @@ public class BorderManager {
             case "damagepause":
                 border.setDamagePause(value);
                 return "\nSet damage pause to " + value;
+            case "numberofparticles":
+                border.setNumberOfParticles(value);
+                return "\nSet number of particles to display border to " + value;
         }
         return "Something went wrong";
     }

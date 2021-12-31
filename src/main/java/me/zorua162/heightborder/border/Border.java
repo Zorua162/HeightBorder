@@ -28,6 +28,7 @@ public class Border implements ConfigurationSerializable {
     Location pos2;
     // Particle colour (red default, but this will be changed if it isn't moving)
     Color particleColour = Color.fromRGB(255, 0, 0);
+    int numberOfParticles;
     // Particle colours change from one to the other, gives a more varied colour to the world border
     String type;
     Logger log;
@@ -38,7 +39,8 @@ public class Border implements ConfigurationSerializable {
 
     int previousBreakLayer = (int) currentHeight;
 
-    public Border(double currentHeight, double endHeight, String direction, double velocity, Location pos1, Location pos2, String type) {
+    public Border(double currentHeight, double endHeight, String direction, double velocity, Location pos1,
+                  Location pos2, String type, Integer numberOfParticles) {
         this.currentHeight = currentHeight;
         this.endHeight = endHeight;
         this.direction = direction;
@@ -46,6 +48,7 @@ public class Border implements ConfigurationSerializable {
         this.pos1 = pos1;
         this.pos2 = pos2;
         this.type = type;
+        this.numberOfParticles = numberOfParticles;
         this.log = Bukkit.getLogger();
         putMapColours();
     }
@@ -65,7 +68,17 @@ public class Border implements ConfigurationSerializable {
         result.put("velocity", this.getVelocity());
         result.put("pos1", this.getPos1());
         result.put("pos2", this.getPos2());
+        result.put("type", this.getType());
+        result.put("numberOfParticles", this.getNumberOfParticles());
         return result;
+    }
+
+    private Integer getNumberOfParticles() {
+        return numberOfParticles;
+    }
+
+    private String getType() {
+        return type;
     }
 
     private double getEndHeight() {
@@ -93,7 +106,7 @@ public class Border implements ConfigurationSerializable {
     }
 
     public static Border deserialize(Map<String, Object> args) {
-        // Some default deseralize values so that errors aren't thrown, could cause issues in future.
+        // Some default deserialize values so that errors aren't thrown, could cause issues in future.
         double currentHeight = 256;
         double endHeight = 128;
         String direction = "down";
@@ -101,6 +114,7 @@ public class Border implements ConfigurationSerializable {
         Location pos1 = null;
         Location pos2 = null;
         String type = "damage";
+        int numberOfParticles = 100;
 
         if (args.containsKey("currentheight")) {
             currentHeight = (Double) args.get("currentheight");
@@ -129,14 +143,25 @@ public class Border implements ConfigurationSerializable {
         if(args.containsKey("type")) {
             type = ((String)args.get("type"));
         }
-        return new Border(currentHeight, endHeight, direction, velocity, pos1, pos2, type);
+
+        if(args.containsKey("numberOfParticles")) {
+            numberOfParticles = ((Integer)args.get("numberOfParticles"));
+        }
+        return new Border(currentHeight, endHeight, direction, velocity, pos1, pos2, type, numberOfParticles);
     }
 
     public String getListInfo() {
-        String outData = "y = " + currentHeight + "\nend height = " + endHeight + "\ndirection = " + direction ;
-        outData = outData + "\nvelocity = " + velocity + "\npos1 = " + pos1.toString() + "\npos2 = " + pos2.toString();
-        outData = outData + "\nparticleColour = " + particleColour.toString() + "\ntype = " + type;
-        return outData;
+        StringBuilder outData = new StringBuilder();
+        outData.append("y = ").append(currentHeight);
+        outData.append("\nend height = ").append(endHeight);
+        outData.append("\ndirection = ").append(direction);
+        outData.append("\nvelocity = ").append(velocity);
+        outData.append("\npos1 = ").append(pos1.toString());
+        outData.append("\npos2 = ").append(pos2.toString());
+        outData.append("\nparticleColour = ").append(particleColour.toString());
+        outData.append("\ntype = ").append(type);
+        outData.append("\nnumber of particles = ").append(numberOfParticles);
+        return outData.toString();
     }
 
     private int getMax(int n1, int n2) {
@@ -164,7 +189,7 @@ public class Border implements ConfigurationSerializable {
     }
 
     public void displayBorder() {
-
+        // Display the border as particles in the world
         // get start and end position for the for nested 2d for loops that loop over the border
         List<Integer> borders = getBorders();
         int startx = borders.get(0);
@@ -179,7 +204,6 @@ public class Border implements ConfigurationSerializable {
 
         World world = pos1.getWorld();
         // Only this set number of particles is created to reduce client lag
-        int numberOfParticles = 100;
         // Scale number of particles to the required size
         int stepx = (endx-startx)/round(Math.sqrt(numberOfParticles));
         int stepz = (endz-startz)/round(Math.sqrt(numberOfParticles));
@@ -319,5 +343,9 @@ public class Border implements ConfigurationSerializable {
 
     public void setDamagePause(String value) {
         damagePause = Integer.parseInt(value);
+    }
+
+    public void setNumberOfParticles(String value) {
+        numberOfParticles = Integer.parseInt(value);
     }
 }

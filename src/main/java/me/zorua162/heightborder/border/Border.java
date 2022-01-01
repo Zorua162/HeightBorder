@@ -10,8 +10,6 @@ import org.bukkit.entity.Player;
 import java.util.*;
 import java.util.logging.Logger;
 
-import static org.bukkit.util.NumberConversions.round;
-
 @SerializableAs("Border")
 public class Border implements ConfigurationSerializable {
     // Things that need to be stored
@@ -30,7 +28,9 @@ public class Border implements ConfigurationSerializable {
     Color particleColour = Color.fromRGB(255, 0, 0);
     int numberOfParticles;
     // Particle colours change from one to the other, gives a more varied colour to the world border
-    String type;
+    Boolean damagePlayers;
+    Boolean breakBlocks;
+    Boolean displayBorderParticles;
     Logger log;
     Map<String, Color> colorMap = new HashMap<>();
     // Current damage tick, when this is equal to damage pause any player outside border is damaged
@@ -40,14 +40,17 @@ public class Border implements ConfigurationSerializable {
     int previousBreakLayer = (int) currentHeight;
 
     public Border(double currentHeight, double endHeight, String direction, double velocity, Location pos1,
-                  Location pos2, String type, Integer numberOfParticles) {
+                  Location pos2, Boolean damagePlayers, Boolean breakBlocks, Boolean displayBorderParticles,
+                  Integer numberOfParticles) {
         this.currentHeight = currentHeight;
         this.endHeight = endHeight;
         this.direction = direction;
         this.velocity = velocity;
         this.pos1 = pos1;
         this.pos2 = pos2;
-        this.type = type;
+        this.damagePlayers = damagePlayers;
+        this.breakBlocks = breakBlocks;
+        this.displayBorderParticles = displayBorderParticles;
         this.numberOfParticles = numberOfParticles;
         this.log = Bukkit.getLogger();
         putMapColours();
@@ -68,17 +71,27 @@ public class Border implements ConfigurationSerializable {
         result.put("velocity", this.getVelocity());
         result.put("pos1", this.getPos1());
         result.put("pos2", this.getPos2());
-        result.put("type", this.getType());
+        result.put("damagePlayers", this.getDamagePlayers());
+        result.put("breakBlocks", this.getBreakBlocks());
+        result.put("displayBorderParticles", this.getDisplayBorderParticles());
         result.put("numberOfParticles", this.getNumberOfParticles());
         return result;
     }
 
-    private Integer getNumberOfParticles() {
-        return numberOfParticles;
+    private Boolean getDisplayBorderParticles() {
+        return displayBorderParticles;
     }
 
-    private String getType() {
-        return type;
+    private Boolean getBreakBlocks() {
+        return breakBlocks;
+    }
+
+    private Boolean getDamagePlayers() {
+        return damagePlayers;
+    }
+
+    private Integer getNumberOfParticles() {
+        return numberOfParticles;
     }
 
     private double getEndHeight() {
@@ -113,7 +126,9 @@ public class Border implements ConfigurationSerializable {
         double velocity = 0;
         Location pos1 = null;
         Location pos2 = null;
-        String type = "damage";
+        Boolean damagePlayers = null;
+        Boolean breakBlocks = null;
+        Boolean displayBorderParticles = null;
         int numberOfParticles = 100;
 
         if (args.containsKey("currentheight")) {
@@ -140,27 +155,38 @@ public class Border implements ConfigurationSerializable {
             pos2 = ((Location)args.get("pos2"));
         }
 
-        if(args.containsKey("type")) {
-            type = ((String)args.get("type"));
+        if(args.containsKey("damagePlayers")) {
+            damagePlayers = ((Boolean)args.get("damagePlayers"));
+        }
+
+        if(args.containsKey("breakBlocks")) {
+            breakBlocks = ((Boolean)args.get("breakBlocks"));
+        }
+
+        if(args.containsKey("displayBorderParticles")) {
+            displayBorderParticles = ((Boolean)args.get("displayBorderParticles"));
         }
 
         if(args.containsKey("numberOfParticles")) {
             numberOfParticles = ((Integer)args.get("numberOfParticles"));
         }
-        return new Border(currentHeight, endHeight, direction, velocity, pos1, pos2, type, numberOfParticles);
+        return new Border(currentHeight, endHeight, direction, velocity, pos1, pos2, damagePlayers, breakBlocks,
+                displayBorderParticles, numberOfParticles);
     }
 
     public String getListInfo() {
         StringBuilder outData = new StringBuilder();
-        outData.append("y = ").append(currentHeight);
-        outData.append("\nend height = ").append(endHeight);
-        outData.append("\ndirection = ").append(direction);
-        outData.append("\nvelocity = ").append(velocity);
-        outData.append("\npos1 = ").append(pos1.toString());
-        outData.append("\npos2 = ").append(pos2.toString());
-        outData.append("\nparticleColour = ").append(particleColour.toString());
-        outData.append("\ntype = ").append(type);
-        outData.append("\nnumber of particles = ").append(numberOfParticles);
+        outData.append(" - Y = ").append(currentHeight);
+        outData.append("\n - End height = ").append(endHeight);
+        outData.append("\n - Direction = ").append(direction);
+        outData.append("\n - Velocity = ").append(velocity);
+        outData.append("\n - Pos1 = ").append(pos1.toString());
+        outData.append("\n - Pos2 = ").append(pos2.toString());
+        outData.append("\n - Particle colour = ").append(particleColour.toString());
+        outData.append("\n - Damage players = ").append(damagePlayers);
+        outData.append("\n - Break blocks= ").append(breakBlocks);
+        outData.append("\n - Display border particles= ").append(displayBorderParticles);
+        outData.append("\n - Number of particles = ").append(numberOfParticles);
         return outData.toString();
     }
 
@@ -196,6 +222,10 @@ public class Border implements ConfigurationSerializable {
         int endx = borders.get(1);
         int startz = borders.get(2);
         int endz = borders.get(3);
+
+        if (!displayBorderParticles) {
+            return;
+        }
 
         // do not display if lower then y = -200, as this would be unecessary
         if (currentHeight < -200) {
@@ -270,7 +300,7 @@ public class Border implements ConfigurationSerializable {
 
     public void doDamage() {
         // check if border should do damage
-        if (!type.equals("damage")){
+        if (!damagePlayers) {
             return;
         }
         // get players in border's world and damage if outside of it
@@ -293,7 +323,7 @@ public class Border implements ConfigurationSerializable {
     }
 
     public void breakBlocks() {
-        if (!type.equals("break")){
+        if (!breakBlocks) {
             return;
         }
         World world = pos1.getWorld();
@@ -348,15 +378,35 @@ public class Border implements ConfigurationSerializable {
         }
     }
 
-    public void setType(String value) {
-        type = value;
-    }
-
     public void setDamagePause(String value) {
         damagePause = Integer.parseInt(value);
     }
 
     public void setNumberOfParticles(String value) {
         numberOfParticles = Integer.parseInt(value);
+    }
+
+    public void setDisplayBorderParticles(String value) {
+        if (value.equals("true")) {
+            displayBorderParticles = true;
+            return;
+        }
+        displayBorderParticles = false;
+    }
+
+    public void setBreakBlocks(String value) {
+        if (value.equals("true")) {
+            breakBlocks = true;
+            return;
+        }
+        breakBlocks = false;
+    }
+
+    public void setDamagePlayers(String value) {
+        if (value.equals("true")) {
+            damagePlayers = true;
+            return;
+        }
+        damagePlayers = false;
     }
 }

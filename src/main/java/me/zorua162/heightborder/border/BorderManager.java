@@ -2,10 +2,9 @@ package me.zorua162.heightborder.border;
 
 
 import me.zorua162.heightborder.HeightBorder;
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
@@ -71,9 +70,26 @@ public class BorderManager {
         border.displayBorder();
     }
 
-    public Border createBorder(double startHeight, double endHeight, String direction, double velocity, Location flpos,
-                               Location brpos, String type){
-        Border border = new Border(startHeight, endHeight, direction, velocity, flpos, brpos, type, numberOfParticles);
+    public Border createBorder(Player player, double startHeight, double endHeight, String direction, double velocity,
+                               Location flpos, Location brpos, String type){
+        // set if the particles are displayed from the config
+        boolean displayBorderParticles = plugin.getCurrentConfig().getBoolean("defaultDisplayBorderParticlesSetting");
+        boolean damagePlayers;
+        boolean breakBlocks;
+        if (type.equals("break")) {
+            damagePlayers = false;
+            breakBlocks = true;
+        } else if (type.equals("damage")) {
+            damagePlayers = true;
+            breakBlocks = false;
+        } else {
+            StringBuilder errorString = new StringBuilder().append("Could not create border as type: \"" + type);
+            errorString.append("\" is not recognised, use \"damage\" or \"break\"");
+            player.sendMessage(errorString.toString());
+            return null;
+        }
+        Border border = new Border(startHeight, endHeight, direction, velocity, flpos, brpos, damagePlayers,
+                breakBlocks, displayBorderParticles, numberOfParticles);
         borderArray.add(border);
         saveBorders();
         return border;
@@ -147,9 +163,15 @@ public class BorderManager {
             case "pos2z":
                 border.setPos("2z", value);
                 return "\nSet pos2z to " + value;
-            case "type":
-                border.setType(value);
-                return "\nSet type to " + value;
+            case "damagePlayers":
+                border.setDamagePlayers(value);
+                return "\nSet damage players to " + value;
+            case "breakBlocks":
+                border.setBreakBlocks(value);
+                return "\nSet break blocks to " + value;
+            case "displayBorderParticles":
+                border.setDisplayBorderParticles(value);
+                return "\nSet display border particles to " + value;
             case "damagepause":
                 border.setDamagePause(value);
                 return "\nSet damage pause to " + value;

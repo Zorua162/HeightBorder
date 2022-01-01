@@ -25,21 +25,15 @@ public final class HeightBorder extends JavaPlugin {
     //
     // TODO list:
     // save to file:
-    //      make number of particles per border editable (but with a config editable default)
     //      moving colour
     //      stopped colour
-    //      damage tick? (although is per border now so probably not)
-    //
-    // display: needs improved configuration
-    // display, break and damage should each be a boolean field, so they can be used together or seperatly
     //
     // Possible later additions:
     // Show break block animation on blocks before breaking them
     // Make particle colour configurable from config
     // Tick times of all tasks editable, either via config and pre gen or similar solution to damagepause
-
-    //
     // Custom death message by checking PlayerDeathEvent
+    
     FileConfiguration config;
     public BorderManager borderManager;
 
@@ -57,6 +51,7 @@ public final class HeightBorder extends JavaPlugin {
         ConfigurationSerialization.registerClass(Border.class);
         config = getConfig();
         config.addDefault("numberOfParticles", 100);
+        config.addDefault("defaultDisplayBorderParticlesSetting", true);
         config.options().copyDefaults(true);
         this.getLogger().info("" + config.getBoolean("youAreAwesome"));
         saveConfig();

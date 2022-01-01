@@ -102,7 +102,7 @@ public class CreateCommand extends SubCommand {
         Location flpos = new Location(player.getWorld(), x1, startHeight, z1);
         Location brpos = new Location(player.getWorld(), x2, startHeight, z2);
         // Create the border
-        plugin.borderManager.createBorder(startHeight, endHeight, direction, velocity, flpos, brpos, type);
+        plugin.borderManager.createBorder(player, startHeight, endHeight, direction, velocity, flpos, brpos, type);
         player.sendMessage("Successfully created world border");
     }
 }

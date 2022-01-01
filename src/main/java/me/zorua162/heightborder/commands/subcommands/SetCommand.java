@@ -2,7 +2,6 @@ package me.zorua162.heightborder.commands.subcommands;
 
 import me.zorua162.heightborder.HeightBorder;
 import me.zorua162.heightborder.commands.SubCommand;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.Arrays;
@@ -21,7 +20,9 @@ public class SetCommand extends SubCommand {
             "pos1z",
             "pos2x",
             "pos2z",
-            "type",
+            "damagePlayers",
+            "breakBlocks",
+            "displayBorderParticles",
             "damagepause",
             "numberofparticles");
 
@@ -69,6 +70,7 @@ public class SetCommand extends SubCommand {
 
     @Override
     public List<String> getSubcommandArguments(Player player, String[] args) {
+        List<String> boolComplete = Arrays.asList("true", "false");
         if (args.length == 2){
             // border selection from ids
             return plugin.borderManager.getBorderIdList();
@@ -94,8 +96,10 @@ public class SetCommand extends SubCommand {
                     return Arrays.asList("-5", "50");
                 case "particlecolour":
                     return Collections.singletonList("255");
-                case "type":
-                    return Arrays.asList("break", "damage");
+                case "damagePlayers":
+                case "breakBlocks":
+                case "displayBorderParticles":
+                    return boolComplete;
                 case "damagepause":
                     return Collections.singletonList("20");
                 case "numberofparticles":

@@ -38,7 +38,7 @@ public class BorderManager {
         breakTask = plugin.getServer().getScheduler().runTaskTimer(plugin,
                 () -> borderArray.forEach(this::borderBreakBlocks), 0, 1L);
         showWarning = plugin.getServer().getScheduler().runTaskTimer(plugin,
-                () -> borderArray.forEach(this::showBorderWarning), 0, 1L);
+                () -> borderArray.forEach(this::showBorderWarning), 0, 20L);
 
     }
 

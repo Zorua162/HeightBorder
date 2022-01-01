@@ -327,7 +327,8 @@ public class Border implements ConfigurationSerializable {
         // Currently show warning no matter the border type
         List<Player> players = pos1.getWorld().getPlayers();
         for (Player player: players) {
-            plugin.worldBorderApi.sendRedScreenForSeconds(player, (long) 0.1, plugin);
+            player.sendMessage("Tried to redden your screen?");
+            plugin.worldBorderApi.sendRedScreenForSeconds(player, 1, plugin);
         }
     }
 }

@@ -6,6 +6,7 @@ import me.zorua162.heightborder.commands.subcommands.CreateCommand;
 import me.zorua162.heightborder.commands.subcommands.DeleteCommand;
 import me.zorua162.heightborder.commands.subcommands.ListCommand;
 import me.zorua162.heightborder.commands.subcommands.SetCommand;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
@@ -32,6 +33,7 @@ public class CommandManager implements TabExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        // Requiring player for the moment as their current world is used for the create command
         if (sender instanceof Player){
             Player p = (Player) sender;
 
@@ -43,6 +45,8 @@ public class CommandManager implements TabExecutor {
                 }
             }
 
+        } else {
+            sender.sendMessage(ChatColor.RED + "[HeightBorder] Command usage from terminal currently disabled");
         }
         return true;
     }

@@ -36,7 +36,6 @@ public class BorderManager {
         numberOfParticles = config.getInt("numberOfParticles");
         if (configBorderList != null){
             borderArray = configBorderList;
-            plugin.getLogger().info(String.valueOf(configBorderList));
         } else {
             Logger logger = plugin.getLogger();
             logger.warning("Could not load borders from save file config.yml");

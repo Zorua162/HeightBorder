@@ -53,7 +53,6 @@ public final class HeightBorder extends JavaPlugin {
         config.addDefault("numberOfParticles", 100);
         config.addDefault("defaultDisplayBorderParticlesSetting", true);
         config.options().copyDefaults(true);
-        this.getLogger().info("" + config.getBoolean("youAreAwesome"));
         saveConfig();
     }
 

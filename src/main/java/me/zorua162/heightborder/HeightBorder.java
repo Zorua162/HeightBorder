@@ -24,6 +24,7 @@ public final class HeightBorder extends JavaPlugin {
     // Implement with border "type" being either "break" or "damage"
     //
     // TODO list:
+    // All tasks on same timer, but spread out by variables
     // save to file:
     //      moving colour
     //      stopped colour
@@ -52,6 +53,10 @@ public final class HeightBorder extends JavaPlugin {
         config = getConfig();
         config.addDefault("numberOfParticles", 100);
         config.addDefault("defaultDisplayBorderParticlesSetting", true);
+        config.addDefault("damageWait", 20);
+        config.addDefault("breakWait", 1);
+        config.addDefault("displayWait", 20);
+        config.addDefault("moveWait", 20);
         config.options().copyDefaults(true);
         saveConfig();
     }

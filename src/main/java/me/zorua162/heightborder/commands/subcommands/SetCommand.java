@@ -23,7 +23,10 @@ public class SetCommand extends SubCommand {
             "damagePlayers",
             "breakBlocks",
             "displayBorderParticles",
-            "damagepause",
+            "damagewait",
+            "breakwait",
+            "displaywait",
+            "movewait",
             "numberofparticles");
 
     public SetCommand(HeightBorder plugin) {
@@ -64,6 +67,8 @@ public class SetCommand extends SubCommand {
                outString.append("Unknown parameter: " + args[i]);
             }
         }
+        outString.delete(0, 1);
+        outString.delete(outString.length()-2, outString.length()-1);
         player.sendMessage(outString.toString());
         plugin.borderManager.saveBorders();
     }
@@ -100,7 +105,10 @@ public class SetCommand extends SubCommand {
                 case "breakBlocks":
                 case "displayBorderParticles":
                     return boolComplete;
-                case "damagepause":
+                case "damagewait":
+                case "breakwait":
+                case "displaywait":
+                case "movewait":
                     return Collections.singletonList("20");
                 case "numberofparticles":
                     return Collections.singletonList("100");

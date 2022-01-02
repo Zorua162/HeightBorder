@@ -2,9 +2,9 @@ package me.zorua162.heightborder.border;
 
 
 import me.zorua162.heightborder.HeightBorder;
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
@@ -16,60 +16,76 @@ public class BorderManager {
 
     ArrayList<Border> borderArray = new ArrayList<>();
     HeightBorder plugin;
-
+    int numberOfParticles;
+    int damageWait;
+    int breakWait;
+    int displayWait;
+    int moveWait;
+    // Filter for validating which parameters cannot be zero.
+    List<String> zeroNotAllowed;
 
     public BorderManager(HeightBorder plugin){
         this.plugin = plugin;
     }
 
-    public void setup() {
-        BukkitTask displayTask;
-        BukkitTask moveTask;
-        BukkitTask damageTask;
-        BukkitTask breakTask;
-        BukkitTask showWarning;
-        // Kick off border display task
-        displayTask = plugin.getServer().getScheduler().runTaskTimer(plugin,
-                () -> borderArray.forEach(this::displayBorder), 0, 20L);
-        moveTask = plugin.getServer().getScheduler().runTaskTimer(plugin,
-                () -> borderArray.forEach(this::moveBorder), 0, 1L);
-        damageTask = plugin.getServer().getScheduler().runTaskTimer(plugin,
-                () -> borderArray.forEach(this::borderDamage), 0, 1L);
-        breakTask = plugin.getServer().getScheduler().runTaskTimer(plugin,
-                () -> borderArray.forEach(this::borderBreakBlocks), 0, 1L);
-        showWarning = plugin.getServer().getScheduler().runTaskTimer(plugin,
-                () -> borderArray.forEach(this::showBorderWarning), 0, 20L);
+    public void setup(FileConfiguration config) {
+        BukkitTask borderTaskTimer;
+
+        // Load the boarder list
+        ArrayList<Border> configBorderList = (ArrayList<Border>) plugin.getConfig().get("borderList");
+        // Load default number of particles for a border to use to display itself
+        numberOfParticles = config.getInt("numberOfParticles");
+        if (configBorderList != null){
+            borderArray = configBorderList;
+        } else {
+            Logger logger = plugin.getLogger();
+            logger.warning("Could not load borders from save file config.yml");
+        }
+
+        // Kick off border tasks
+        borderTaskTimer = plugin.getServer().getScheduler().runTaskTimer(plugin,
+                () -> borderArray.forEach(this::runBorderTasks), 0, 1L);
+        // For stopping user from setting value to 0 as division error would occur
+        zeroNotAllowed = Arrays.asList("damagewait", "breakwait", "movewait", "displaywait");
 
     }
 
-    private void showBorderWarning(Border border) {
-       border.showWarning(plugin);
+    private void runBorderTasks(Border border) {
+        border.runTasks();
     }
 
-    private void borderBreakBlocks(Border border) {
-       border.breakBlocks();
-    }
-
-    private void borderDamage(Border border) {
-        border.doDamage();
-    }
-
-    private void moveBorder(Border border) {border.moveBorder();
-
-    }
-
-    private void displayBorder(Border border) {
-        border.displayBorder();
-    }
-
-    public Border createBorder(double startHeight, double endHeight, String direction, double velocity, Location flpos,
-                               Location brpos, String type){
-        Border border = new Border(startHeight, endHeight, direction, velocity, flpos, brpos, type);
+    public Border createBorder(Player player, double startHeight, double endHeight, String direction, double velocity,
+                               Location flpos, Location brpos, String type){
+        // set if the particles are displayed from the config
+        FileConfiguration config = plugin.getCurrentConfig();
+        boolean displayBorderParticles = config.getBoolean("defaultDisplayBorderParticlesSetting");
+        // set task periodic wait times from config
+        damageWait = config.getInt("damageWait");
+        breakWait = config.getInt("breakWait");
+        displayWait = config.getInt("displayWait");
+        moveWait = config.getInt("moveWait");
+        boolean damagePlayers;
+        boolean breakBlocks;
+        if (type.equals("break")) {
+            damagePlayers = false;
+            breakBlocks = true;
+        } else if (type.equals("damage")) {
+            damagePlayers = true;
+            breakBlocks = false;
+        } else {
+            StringBuilder errorString = new StringBuilder("Could not create border as type: \"" + type);
+            errorString.append("\" is not recognised, use \"damage\" or \"break\"");
+            player.sendMessage(errorString.toString());
+            return null;
+        }
+        Border border = new Border(startHeight, endHeight, direction, velocity, flpos, brpos, damagePlayers,
+                breakBlocks, displayBorderParticles, numberOfParticles, damageWait, breakWait, displayWait, moveWait);
         borderArray.add(border);
+        saveBorders();
         return border;
     }
 
-    public String getBorderList() {
+    public String getBorderListString() {
         String borderList = "";
         int i = 0;
         for (Border border: borderArray) {
@@ -80,14 +96,21 @@ public class BorderManager {
         return borderList;
     }
     public String deleteBorder(String id) {
-        int intId = Integer.valueOf(id);
+        int intId = Integer.parseInt(id);
        if (intId>borderArray.size()){
            return "index out of range";
        } else if (intId == 0){
           return "Use id 1-n not index";
         }
        borderArray.remove(intId-1);
+       saveBorders();
        return "Success";
+    }
+
+    public void saveBorders() {
+        FileConfiguration config = plugin.getConfig();
+        config.set("borderList", borderArray);
+        plugin.saveConfig();
     }
 
     public List<String> getBorderIdList() {
@@ -100,7 +123,12 @@ public class BorderManager {
     }
 
     public String setParameter(String id, String parameter, String value) {
-        Border border = borderArray.get(Integer.valueOf(id)-1);
+        Border border = borderArray.get(Integer.parseInt(id)-1);
+        if ((zeroNotAllowed.contains(parameter) && Integer.parseInt(value) == 0)) {
+            return "\nFailed to set " + parameter + " 0 is not valid for this parameter";
+        }
+
+
         switch (parameter){
             case "currentheight":
                 border.setCurrentHeight(Double.parseDouble(value));
@@ -130,12 +158,30 @@ public class BorderManager {
             case "pos2z":
                 border.setPos("2z", value);
                 return "\nSet pos2z to " + value;
-            case "type":
-                border.setType(value);
-                return "\nSet type to " + value;
-            case "damagepause":
-                border.setDamagePause(value);
-                return "\nSet damage pause to " + value;
+            case "damagePlayers":
+                border.setDamagePlayers(value);
+                return "\nSet damage players to " + value;
+            case "breakBlocks":
+                border.setBreakBlocks(value);
+                return "\nSet break blocks to " + value;
+            case "displayBorderParticles":
+                border.setDisplayBorderParticles(value);
+                return "\nSet display border particles to " + value;
+            case "damagewait":
+                border.setDamageWait(value);
+                return "\nSet damage wait to " + value;
+            case "breakwait":
+                border.setBreakWait(value);
+                return "\nSet break wait to " + value;
+            case "displaywait":
+                border.setDisplayWait(value);
+                return "\nSet display wait to " + value;
+            case "movewait":
+                border.setMoveWait(value);
+                return "\nSet move wait to " + value;
+            case "numberofparticles":
+                border.setNumberOfParticles(value);
+                return "\nSet number of particles to display border to " + value;
         }
         return "Something went wrong";
     }

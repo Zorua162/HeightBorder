@@ -11,8 +11,6 @@ import org.bukkit.entity.Player;
 import java.util.*;
 import java.util.logging.Logger;
 
-import static org.bukkit.util.NumberConversions.round;
-
 @SerializableAs("Border")
 public class Border implements ConfigurationSerializable {
     // Things that need to be stored
@@ -29,25 +27,40 @@ public class Border implements ConfigurationSerializable {
     Location pos2;
     // Particle colour (red default, but this will be changed if it isn't moving)
     Color particleColour = Color.fromRGB(255, 0, 0);
+    int numberOfParticles;
     // Particle colours change from one to the other, gives a more varied colour to the world border
-    String type;
+    Boolean damagePlayers;
+    Boolean breakBlocks;
+    Boolean displayBorderParticles;
     Logger log;
     Map<String, Color> colorMap = new HashMap<>();
-    // Current damage tick, when this is equal to damage pause any player outside border is damaged
-    int damageTick = 0;
-    int damagePause = 20;
+    // Current tick, when this is equal to damage pause any player outside border is damaged or that of other tasks
+    int tickCount = 0;
+    // Default pauses between different tasks, this will eventually be moved to config
+    int damageWait;
+    int breakWait;
+    int displayWait;
+    int moveWait;
 
-    int previousBreakLayer = (int) currentHeight;
+    int previousBreakLayer = 0;
 
-    public Border(double currentHeight, double endHeight, String direction, double velocity, Location pos1, Location pos2, String type) {
+    public Border(double currentHeight, double endHeight, String direction, double velocity, Location pos1,
+                  Location pos2, Boolean damagePlayers, Boolean breakBlocks, Boolean displayBorderParticles,
+                  Integer numberOfParticles, int damageWait, int breakWait, int displayWait, int moveWait) {
         this.currentHeight = currentHeight;
         this.endHeight = endHeight;
         this.direction = direction;
         this.velocity = velocity;
         this.pos1 = pos1;
         this.pos2 = pos2;
-        this.type = type;
-        this.log = Bukkit.getLogger();
+        this.damagePlayers = damagePlayers;
+        this.breakBlocks = breakBlocks;
+        this.displayBorderParticles = displayBorderParticles;
+        this.numberOfParticles = numberOfParticles;
+        this.damageWait = damageWait;
+        this.breakWait = breakWait;
+        this.displayWait = displayWait;
+        this.moveWait = moveWait;
         putMapColours();
     }
 
@@ -66,7 +79,48 @@ public class Border implements ConfigurationSerializable {
         result.put("velocity", this.getVelocity());
         result.put("pos1", this.getPos1());
         result.put("pos2", this.getPos2());
+        result.put("damagePlayers", this.getDamagePlayers());
+        result.put("breakBlocks", this.getBreakBlocks());
+        result.put("displayBorderParticles", this.getDisplayBorderParticles());
+        result.put("numberOfParticles", this.getNumberOfParticles());
+        result.put("damageWait", this.getDamageWait());
+        result.put("breakWait", this.getBreakWait());
+        result.put("displayWait", this.getDisplayWait());
+        result.put("moveWait", this.getMoveWait());
         return result;
+    }
+
+    private int getMoveWait() {
+        return displayWait;
+    }
+
+    private int getDisplayWait() {
+        return displayWait;
+    }
+
+    private int getBreakWait() {
+        return breakWait;
+    }
+
+    private int getDamageWait() {
+        return damageWait;
+    }
+
+
+    private Boolean getDisplayBorderParticles() {
+        return displayBorderParticles;
+    }
+
+    private Boolean getBreakBlocks() {
+        return breakBlocks;
+    }
+
+    private Boolean getDamagePlayers() {
+        return damagePlayers;
+    }
+
+    private Integer getNumberOfParticles() {
+        return numberOfParticles;
     }
 
     private double getEndHeight() {
@@ -94,14 +148,22 @@ public class Border implements ConfigurationSerializable {
     }
 
     public static Border deserialize(Map<String, Object> args) {
-        // Some default deseralize values so that errors aren't thrown, could cause issues in future.
+        // Some default deserialize values so that errors aren't thrown, could cause issues in future.
         double currentHeight = 256;
         double endHeight = 128;
         String direction = "down";
         double velocity = 0;
         Location pos1 = null;
         Location pos2 = null;
-        String type = "damage";
+        Boolean damagePlayers = null;
+        Boolean breakBlocks = null;
+        Boolean displayBorderParticles = null;
+        int damageWait = 20;
+        int breakWait = 20;
+        int displayWait = 20;
+        int moveWait = 20;
+
+        int numberOfParticles = 100;
 
         if (args.containsKey("currentheight")) {
             currentHeight = (Double) args.get("currentheight");
@@ -127,17 +189,59 @@ public class Border implements ConfigurationSerializable {
             pos2 = ((Location)args.get("pos2"));
         }
 
-        if(args.containsKey("type")) {
-            type = ((String)args.get("type"));
+        if(args.containsKey("damagePlayers")) {
+            damagePlayers = ((Boolean)args.get("damagePlayers"));
         }
-        return new Border(currentHeight, endHeight, direction, velocity, pos1, pos2, type);
+
+        if(args.containsKey("breakBlocks")) {
+            breakBlocks = ((Boolean)args.get("breakBlocks"));
+        }
+
+        if(args.containsKey("displayBorderParticles")) {
+            displayBorderParticles = ((Boolean)args.get("displayBorderParticles"));
+        }
+
+        if(args.containsKey("numberOfParticles")) {
+            numberOfParticles = ((Integer)args.get("numberOfParticles"));
+        }
+
+        if(args.containsKey("damageWait")) {
+            damageWait = ((Integer)args.get("damageWait"));
+        }
+
+        if(args.containsKey("breakWait")) {
+            breakWait = ((Integer)args.get("breakWait"));
+        }
+
+        if(args.containsKey("displayWait")) {
+            displayWait = ((Integer)args.get("displayWait"));
+        }
+
+        if(args.containsKey("moveWait")) {
+            moveWait = ((Integer)args.get("moveWait"));
+        }
+        return new Border(currentHeight, endHeight, direction, velocity, pos1, pos2, damagePlayers, breakBlocks,
+                displayBorderParticles, numberOfParticles, damageWait, breakWait, displayWait, moveWait);
     }
 
     public String getListInfo() {
-        String outData = "y = " + currentHeight + "\nend height = " + endHeight + "\ndirection = " + direction ;
-        outData = outData + "\nvelocity = " + velocity + "\npos1 = " + pos1.toString() + "\npos2 = " + pos2.toString();
-        outData = outData + "\nparticleColour = " + particleColour.toString() + "\ntype = " + type;
-        return outData;
+        StringBuilder outData = new StringBuilder();
+        outData.append(" - Y = ").append(currentHeight);
+        outData.append("\n - End height = ").append(endHeight);
+        outData.append("\n - Direction = ").append(direction);
+        outData.append("\n - Velocity = ").append(velocity);
+        outData.append("\n - Pos1 = ").append(pos1.toString());
+        outData.append("\n - Pos2 = ").append(pos2.toString());
+        outData.append("\n - Particle colour = ").append(particleColour.toString());
+        outData.append("\n - Damage players = ").append(damagePlayers);
+        outData.append("\n - Break blocks= ").append(breakBlocks);
+        outData.append("\n - Display border particles= ").append(displayBorderParticles);
+        outData.append("\n - Number of particles = ").append(numberOfParticles);
+        outData.append("\n - Damage pause = ").append(damageWait);
+        outData.append("\n - Break pause = ").append(breakWait);
+        outData.append("\n - Display pause = ").append(displayWait);
+        outData.append("\n - move pause = ").append(moveWait);
+        return outData.toString();
     }
 
     private int getMax(int n1, int n2) {
@@ -165,13 +269,17 @@ public class Border implements ConfigurationSerializable {
     }
 
     public void displayBorder() {
-
+        // Display the border as particles in the world
         // get start and end position for the for nested 2d for loops that loop over the border
         List<Integer> borders = getBorders();
         int startx = borders.get(0);
         int endx = borders.get(1);
         int startz = borders.get(2);
         int endz = borders.get(3);
+
+        if (!displayBorderParticles) {
+            return;
+        }
 
         // do not display if lower then y = -200, as this would be unecessary
         if (currentHeight < -200) {
@@ -180,10 +288,11 @@ public class Border implements ConfigurationSerializable {
 
         World world = pos1.getWorld();
         // Only this set number of particles is created to reduce client lag
-        int numberOfParticles = 100;
         // Scale number of particles to the required size
-        int stepx = (endx-startx)/round(Math.sqrt(numberOfParticles));
-        int stepz = (endz-startz)/round(Math.sqrt(numberOfParticles));
+
+        // Calculate step size and if it would be less than 1 then set it to 1
+        int stepx = getStep(startx, endx);
+        int stepz = getStep(startz, endz);
         //
         for (int x=startx; x < endx + stepx; x = x + stepx) {
            for (int z=startz; z < endz + stepz; z = z + stepz) {
@@ -199,13 +308,23 @@ public class Border implements ConfigurationSerializable {
         }
     }
 
+    private int getStep(int startx, int endx) {
+        double checkStepX = (endx - startx) / Math.sqrt(numberOfParticles);
+        if (checkStepX < 1) {
+            return 1;
+        } else {
+            return (int) checkStepX;
+        }
+    }
+
     public void moveBorder() {
         // Velocity is given in blocks/minute
         // this function is called every tick
         // conversion of block/min to amount/tick
         // ticks in a second = 20
         // so it should move the number of blocks/s/20 every tick or blocks/min/20/60
-
+        // however movement might be skipped due to moveWait, so increase change by number of ticks paused
+        double heightChange = (velocity/20/60)* moveWait;
         if (direction.equals("down")){
             // Check if reached final height
             if (currentHeight <= endHeight) {
@@ -215,7 +334,7 @@ public class Border implements ConfigurationSerializable {
                 return;
             }
             particleColour = colorMap.get("moving");
-            currentHeight = currentHeight - velocity/20/60;
+            currentHeight = currentHeight - heightChange;
         } else {
             if (currentHeight >= endHeight) {
                 // final height reached
@@ -223,7 +342,7 @@ public class Border implements ConfigurationSerializable {
                 particleColour = colorMap.get("stopped");
                 return;
             }
-            currentHeight = currentHeight + velocity/20/60;
+            currentHeight = currentHeight + heightChange;
         }
 
         // Set particle colour to blue if the border isn't moving
@@ -236,30 +355,26 @@ public class Border implements ConfigurationSerializable {
 
     public void doDamage() {
         // check if border should do damage
-        if (!type.equals("damage")){
+        if (!damagePlayers) {
             return;
         }
         // get players in border's world and damage if outside of it
         List<Player> players = pos1.getWorld().getPlayers();
-        damageTick = damageTick + 1;
-        if (damageTick == damagePause){
-            damageTick = 0;
-            for (Player player: players) {
-                if (direction.equals("down")) {
-                    if (player.getLocation().getY() + 1 > currentHeight) {
-                        player.damage(0.5);
-                    }
-                } else {
-                    if (player.getLocation().getY() - 1 < currentHeight) {
-                        player.damage(0.5);
-                    }
+        for (Player player: players) {
+            if (direction.equals("down")) {
+                if (player.getLocation().getY() + 1 > currentHeight) {
+                    player.damage(0.5);
+                }
+            } else {
+                if (player.getLocation().getY() - 1 < currentHeight) {
+                    player.damage(0.5);
                 }
             }
         }
     }
 
     public void breakBlocks() {
-        if (!type.equals("break")){
+        if (!breakBlocks) {
             return;
         }
         World world = pos1.getWorld();
@@ -314,12 +429,65 @@ public class Border implements ConfigurationSerializable {
         }
     }
 
-    public void setType(String value) {
-        type = value;
+    public void setDamageWait(String value) {
+        damageWait = Integer.parseInt(value);
     }
 
-    public void setDamagePause(String value) {
-        damagePause = Integer.parseInt(value);
+    public void setNumberOfParticles(String value) {
+        numberOfParticles = Integer.parseInt(value);
+    }
+
+    public void setDisplayBorderParticles(String value) {
+        if (value.equals("true")) {
+            displayBorderParticles = true;
+            return;
+        }
+        displayBorderParticles = false;
+    }
+
+    public void setBreakBlocks(String value) {
+        if (value.equals("true")) {
+            breakBlocks = true;
+            return;
+        }
+        breakBlocks = false;
+    }
+
+    public void setDamagePlayers(String value) {
+        if (value.equals("true")) {
+            damagePlayers = true;
+            return;
+        }
+        damagePlayers = false;
+    }
+
+    public void runTasks() {
+        tickCount++;
+        // Call border methods, but only on the period defined by each method's pause variable
+        if ((tickCount % damageWait) == 0) {
+            doDamage();
+        }
+        if ((tickCount % breakWait) == 0) {
+            breakBlocks();
+        }
+        if ((tickCount % moveWait) == 0) {
+            moveBorder();
+        }
+        if ((tickCount % displayWait) == 0) {
+            displayBorder();
+        }
+    }
+
+    public void setBreakWait(String value) {
+        breakWait = Integer.parseInt(value);
+    }
+
+    public void setDisplayWait(String value) {
+        displayWait = Integer.parseInt(value);
+    }
+
+    public void setMoveWait(String value) {
+        moveWait = Integer.parseInt(value);
     }
 
     public void showWarning(HeightBorder plugin) {

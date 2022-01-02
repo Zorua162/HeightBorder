@@ -2,11 +2,8 @@ package me.zorua162.heightborder.commands.subcommands;
 
 import me.zorua162.heightborder.HeightBorder;
 import me.zorua162.heightborder.commands.SubCommand;
-import org.bukkit.Bukkit;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ListCommand extends SubCommand {
@@ -36,7 +33,7 @@ public class ListCommand extends SubCommand {
 
         //TODO get the list input here
 
-        player.sendMessage("Current border list: " + plugin.borderManager.getBorderList());
+        player.sendMessage("Current border list: " + plugin.borderManager.getBorderListString());
     }
 
     @Override

@@ -24,7 +24,6 @@ public final class HeightBorder extends JavaPlugin {
     // Implement with border "type" being either "break" or "damage"
     //
     // TODO list:
-    // All tasks on same timer, but spread out by variables
     // save to file:
     //      moving colour
     //      stopped colour

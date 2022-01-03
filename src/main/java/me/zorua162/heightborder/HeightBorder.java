@@ -1,10 +1,12 @@
 package me.zorua162.heightborder;
 
+import com.github.yannicklamprecht.worldborder.api.WorldBorderApi;
 import me.zorua162.heightborder.border.Border;
 import me.zorua162.heightborder.border.BorderManager;
 import me.zorua162.heightborder.commands.CommandManager;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class HeightBorder extends JavaPlugin {
@@ -24,6 +26,7 @@ public final class HeightBorder extends JavaPlugin {
     // Implement with border "type" being either "break" or "damage"
     //
     // TODO list:
+    // Allow applicable commands to be called from command prompt such as set, list, delete
     // save to file:
     //      moving colour
     //      stopped colour
@@ -36,6 +39,7 @@ public final class HeightBorder extends JavaPlugin {
     
     FileConfiguration config;
     public BorderManager borderManager;
+    public WorldBorderApi worldBorderApi;
 
     @Override
     public void onEnable() {
@@ -43,6 +47,7 @@ public final class HeightBorder extends JavaPlugin {
         setupConfig();
         borderManager = new BorderManager(this);
         borderManager.setup(config);
+        setupWorldBorderAPI();
         getCommand("heightborder").setExecutor(new CommandManager(this));
         // TODO reload from file and with saved wbders
     }
@@ -58,6 +63,18 @@ public final class HeightBorder extends JavaPlugin {
         config.addDefault("moveWait", 20);
         config.options().copyDefaults(true);
         saveConfig();
+    }
+
+    private void setupWorldBorderAPI(){
+        RegisteredServiceProvider<WorldBorderApi> worldBorderApiRegisteredServiceProvider = getServer().getServicesManager().getRegistration(WorldBorderApi.class);
+
+        if (worldBorderApiRegisteredServiceProvider == null) {
+            getLogger().info("API not found");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        worldBorderApi = worldBorderApiRegisteredServiceProvider.getProvider();
     }
 
     public FileConfiguration getCurrentConfig() {

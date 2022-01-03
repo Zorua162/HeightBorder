@@ -51,7 +51,7 @@ public class BorderManager {
     }
 
     private void runBorderTasks(Border border) {
-        border.runTasks();
+        border.runTasks(plugin);
     }
 
     public Border createBorder(Player player, double startHeight, double endHeight, String direction, double velocity,

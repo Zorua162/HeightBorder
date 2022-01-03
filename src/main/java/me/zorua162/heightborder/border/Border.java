@@ -1,6 +1,8 @@
 package me.zorua162.heightborder.border;
 
 
+import com.github.yannicklamprecht.worldborder.api.IWorldBorder;
+import com.github.yannicklamprecht.worldborder.api.WorldBorderAction;
 import me.zorua162.heightborder.HeightBorder;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -461,7 +463,7 @@ public class Border implements ConfigurationSerializable {
         damagePlayers = false;
     }
 
-    public void runTasks() {
+    public void runTasks(HeightBorder plugin) {
         tickCount++;
         // Call border methods, but only on the period defined by each method's pause variable
         if ((tickCount % damageWait) == 0) {
@@ -476,6 +478,7 @@ public class Border implements ConfigurationSerializable {
         if ((tickCount % displayWait) == 0) {
             displayBorder();
         }
+        showWarning(plugin);
     }
 
     public void setBreakWait(String value) {
@@ -495,8 +498,32 @@ public class Border implements ConfigurationSerializable {
         // Currently show warning no matter the border type
         List<Player> players = pos1.getWorld().getPlayers();
         for (Player player: players) {
-            player.sendMessage("Tried to redden your screen?");
-            plugin.worldBorderApi.sendRedScreenForSeconds(player, 1, plugin);
+
+            if (direction.equals("down")) {
+                if (player.getLocation().getY() + 1 > currentHeight) {
+                    reddenPlayersScreen(plugin, player);
+                } else {
+                   unReddenPlayersScreen(plugin, player);
+                }
+            } else {
+                if (player.getLocation().getY() - 1 < currentHeight) {
+                    reddenPlayersScreen(plugin, player);
+                } else {
+                    unReddenPlayersScreen(plugin, player);
+                }
+            }
         }
+    }
+    private void reddenPlayersScreen(HeightBorder plugin, Player player) {
+        IWorldBorder border = plugin.worldBorderApi.getWorldBorder(player);
+        border.setWarningDistanceInBlocks((int) border.getSize());
+        border.send(player, WorldBorderAction.SET_WARNING_BLOCKS);
+    }
+
+    private void unReddenPlayersScreen(HeightBorder plugin, Player player) {
+        IWorldBorder border = plugin.worldBorderApi.getWorldBorder(player);
+        border.setWarningDistanceInBlocks(0);
+        border.send(player, WorldBorderAction.SET_WARNING_BLOCKS);
+
     }
 }

@@ -62,7 +62,7 @@ particle colours configuration
 better animation for block breaking
 Custom death messages from border
 
-Screenshots:
+# Screenshots
 ![Moving border](./images/2022-01-01_17.15.23.png)
 ![Stopped border](./images/2022-01-01_17.16.16.png)
 

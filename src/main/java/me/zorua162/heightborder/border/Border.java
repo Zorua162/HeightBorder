@@ -43,8 +43,8 @@ public class Border implements ConfigurationSerializable {
     int breakWait;
     int displayWait;
     int moveWait;
-
     int previousBreakLayer = 0;
+    WarningManager warningManager;
 
     public Border(double currentHeight, double endHeight, String direction, double velocity, Location pos1,
                   Location pos2, Boolean damagePlayers, Boolean breakBlocks, Boolean displayBorderParticles,
@@ -64,6 +64,8 @@ public class Border implements ConfigurationSerializable {
         this.displayWait = displayWait;
         this.moveWait = moveWait;
         putMapColours();
+        HeightBorder plugin = (HeightBorder) Bukkit.getPluginManager().getPlugin("HeightBorder");
+        warningManager = plugin.getBorderManager().getWarningManager();
     }
 
     public void putMapColours() {
@@ -478,7 +480,7 @@ public class Border implements ConfigurationSerializable {
         if ((tickCount % displayWait) == 0) {
             displayBorder();
         }
-        showWarning(plugin);
+        checkWarning(plugin);
     }
 
     public void setBreakWait(String value) {
@@ -493,7 +495,7 @@ public class Border implements ConfigurationSerializable {
         moveWait = Integer.parseInt(value);
     }
 
-    public void showWarning(HeightBorder plugin) {
+    public void checkWarning(HeightBorder plugin) {
         // show the red "border near" warning to all players
         // Currently show warning no matter the border type
         List<Player> players = pos1.getWorld().getPlayers();
@@ -501,29 +503,17 @@ public class Border implements ConfigurationSerializable {
 
             if (direction.equals("down")) {
                 if (player.getLocation().getY() + 1 > currentHeight) {
-                    reddenPlayersScreen(plugin, player);
+                    warningManager.setReddenPlayersScreen(plugin, player, this);
                 } else {
-                   unReddenPlayersScreen(plugin, player);
+                   warningManager.setUnReddenPlayersScreen(plugin, player, this);
                 }
             } else {
                 if (player.getLocation().getY() - 1 < currentHeight) {
-                    reddenPlayersScreen(plugin, player);
+                    warningManager.setReddenPlayersScreen(plugin, player, this);
                 } else {
-                    unReddenPlayersScreen(plugin, player);
+                    warningManager.setUnReddenPlayersScreen(plugin, player, this);
                 }
             }
         }
-    }
-    private void reddenPlayersScreen(HeightBorder plugin, Player player) {
-        IWorldBorder border = plugin.worldBorderApi.getWorldBorder(player);
-        border.setWarningDistanceInBlocks((int) border.getSize());
-        border.send(player, WorldBorderAction.SET_WARNING_BLOCKS);
-    }
-
-    private void unReddenPlayersScreen(HeightBorder plugin, Player player) {
-        IWorldBorder border = plugin.worldBorderApi.getWorldBorder(player);
-        border.setWarningDistanceInBlocks(0);
-        border.send(player, WorldBorderAction.SET_WARNING_BLOCKS);
-
     }
 }

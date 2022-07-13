@@ -1,7 +1,7 @@
 name: HeightBorder
 version: ${project.version}
 main: me.zorua162.heightborder.HeightBorder
-api-version: 1.18
+api-version: 1.19
 depend: [WorldBorderAPI]
 commands:
   heightborder:

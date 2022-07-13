@@ -23,6 +23,8 @@ public class BorderManager {
     int moveWait;
     // Filter for validating which parameters cannot be zero.
     List<String> zeroNotAllowed;
+    // Manager for handling the red "warning" that displays on player's screens
+    WarningManager warningManager;
 
     public BorderManager(HeightBorder plugin){
         this.plugin = plugin;
@@ -47,6 +49,8 @@ public class BorderManager {
                 () -> borderArray.forEach(this::runBorderTasks), 0, 1L);
         // For stopping user from setting value to 0 as division error would occur
         zeroNotAllowed = Arrays.asList("damagewait", "breakwait", "movewait", "displaywait");
+
+        warningManager = new WarningManager(this);
 
     }
 
@@ -185,4 +189,5 @@ public class BorderManager {
         }
         return "Something went wrong";
     }
+    public WarningManager getWarningManager() {return this.warningManager;}
 }

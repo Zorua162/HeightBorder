@@ -27,6 +27,7 @@ public final class HeightBorder extends JavaPlugin {
     //
     // TODO list:
     // Allow applicable commands to be called from command prompt such as set, list, delete
+    // Allow for the block warning distance (and time) to be set for screen reddening
     // save to file:
     //      moving colour
     //      stopped colour

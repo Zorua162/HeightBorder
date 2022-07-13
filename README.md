@@ -51,18 +51,18 @@ Set any of the following parameters:
 Multiple parameters can be set at the same time with the same command:
 for example `/hb set 1 currenheight 256 velocity 0 damagePlayers false` would be a valid command.
 
-Misc other features:
+# Misc other features
 Tab to complete
 Borders persist over plugin/ server reload
+Red screen tint warning: Currently being worked on, although having some issues with the 3rd party api
+Finer tuning of display and break block timing
 
-Future plans:
-red screen tint warning: Currently being worked on, although having some issues with the 3rd party api
+# Future plans
 particle colours configuration
-finer tuning of display and break block timing
 better animation for block breaking
 Custom death messages from border
 
-Screenshots:
+# Screenshots
 ![Moving border](./images/2022-01-01_17.15.23.png)
 ![Stopped border](./images/2022-01-01_17.16.16.png)
 

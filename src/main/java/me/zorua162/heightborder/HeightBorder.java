@@ -20,15 +20,9 @@ public final class HeightBorder extends JavaPlugin {
     // Player "outside" of border
     // What is outside? Border should be defined as top or bottom
     // World border display part
-    // how many particles displayed? Laggy?
     //
-    // Alternative implementation as per staff meeting: 06/12
-    // remove layers as a way to bring players together
-    // Implement with border "type" being either "break" or "damage"
     //
     // TODO list:
-    // Send spectators the current y level of the borders
-    // Send players a colour coded arrow to warn them how close the arrows are
     // Allow applicable commands to be called from command prompt such as set, list, delete
     // Allow for the block warning distance (and time) to be set for screen reddening
     // save to file:

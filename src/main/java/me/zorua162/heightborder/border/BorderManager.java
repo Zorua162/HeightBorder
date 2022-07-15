@@ -208,15 +208,15 @@ public class BorderManager {
     }
     public WarningManager getWarningManager() {return this.warningManager;}
     public void setupBorders(Player player, String[] args) {
-        int timeToFinish;
+        Double timeToFinish;
         if (args.length == 1) {
             player.sendMessage("The center height of the end box needs to be specified");
             return;
         }
         if (args.length == 3) {
-            timeToFinish = Integer.parseInt(args[2]);
+            timeToFinish = Double.parseDouble(args[2]);
         } else {
-            timeToFinish = 20;
+            timeToFinish = 20.0;
         }
         int topStartHeight = 320;
         int bottomStartHeight = -64;
@@ -226,8 +226,8 @@ public class BorderManager {
         int topEndHeight = endCenter + 5;
         int bottomEndHeight = endCenter - 5;
 
-        int topBorderVelocity = (topStartHeight - topEndHeight)/timeToFinish;
-        int bottomBorderVelocity = (bottomEndHeight - bottomStartHeight )/timeToFinish;
+        int topBorderVelocity = (int) ((topStartHeight - topEndHeight)/timeToFinish);
+        int bottomBorderVelocity = (int) ((bottomEndHeight - bottomStartHeight )/timeToFinish);
 
         Location flpos = new Location(player.getWorld(), -5, topStartHeight, 5);
         Location brpos = new Location(player.getWorld(), 5, bottomStartHeight, -5);

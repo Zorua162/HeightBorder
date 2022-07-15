@@ -26,6 +26,7 @@ public class BorderManager {
     List<String> zeroNotAllowed;
     // Manager for handling the red "warning" that displays on player's screens
     WarningManager warningManager;
+    // UHC plugin
 
     public BorderManager(HeightBorder plugin){
         this.plugin = plugin;
@@ -57,17 +58,24 @@ public class BorderManager {
 
         // Kick off border tasks
         borderTaskTimer = plugin.getServer().getScheduler().runTaskTimer(plugin,
-                () -> borderArray.forEach(this::runBorderTasks), 0, 1L);
+                () -> borderArray.forEach(this::runTasks), 0, 1L);
         // For stopping user from setting value to 0 as division error would occur
         zeroNotAllowed = Arrays.asList("damagewait", "breakwait", "movewait", "displaywait");
 
 
     }
 
-    private void runBorderTasks(Border border) {border.runTasks(plugin);}
+    private void runTasks(Border border) {
+        border.runTasks(plugin);
+        checkStartBorders();
+    }
+
+    private void checkStartBorders() {
+        // Check if borders should start
+    }
 
     public Border createBorder(Player player, double startHeight, double endHeight, String direction, double velocity,
-                               Location flpos, Location brpos, String type){
+                               Location flpos, Location brpos, String type, Boolean stopped){
         // set if the particles are displayed from the config
         FileConfiguration config = plugin.getCurrentConfig();
         boolean displayBorderParticles = config.getBoolean("defaultDisplayBorderParticlesSetting");
@@ -91,7 +99,8 @@ public class BorderManager {
             return null;
         }
         Border border = new Border(startHeight, endHeight, direction, velocity, flpos, brpos, damagePlayers,
-                breakBlocks, displayBorderParticles, numberOfParticles, damageWait, breakWait, displayWait, moveWait);
+                breakBlocks, displayBorderParticles, numberOfParticles, damageWait, breakWait, displayWait, moveWait,
+                stopped);
         border.setManager(warningManager);
         borderArray.add(border);
         saveBorders();
@@ -233,10 +242,15 @@ public class BorderManager {
         Location brpos = new Location(player.getWorld(), 5, bottomStartHeight, -5);
 
         createBorder(player, topStartHeight, topEndHeight, "down", topBorderVelocity, flpos,
-                brpos, "damage");
+                brpos, "damage", true);
         createBorder(player, bottomStartHeight, bottomEndHeight, "up", bottomBorderVelocity, flpos,
-                brpos, "damage");
+                brpos, "damage", true);
         player.sendMessage("Creating borders");
+    }
+    public void startBorders() {
+        for (Border border : borderArray) {
+            border.startBorder();
+        }
     }
 }
 

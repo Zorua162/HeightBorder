@@ -19,6 +19,7 @@ public class CreateCommand extends SubCommand {
     double x2;
     double z2;
     String type;
+    Boolean stopped;
 
     public CreateCommand(HeightBorder plugin) {
         this.plugin = plugin;
@@ -71,6 +72,9 @@ public class CreateCommand extends SubCommand {
             case 10:
                 // Type
                 return Arrays.asList("damage", "break");
+            case 11:
+                // Stopped
+                return Arrays.asList("True", "False");
         }
         return null;
     }
@@ -98,11 +102,20 @@ public class CreateCommand extends SubCommand {
         x2 = Double.parseDouble(args[7]);
         z2 = Double.parseDouble(args[8]);
         type = args[9];
+        stopped = Boolean.parseBoolean(args[10]);
 
         Location flpos = new Location(player.getWorld(), x1, startHeight, z1);
         Location brpos = new Location(player.getWorld(), x2, startHeight, z2);
         // Create the border
-        plugin.borderManager.createBorder(player, startHeight, endHeight, direction, velocity, flpos, brpos, type);
+        plugin.borderManager.createBorder(player,
+                                          startHeight,
+                                          endHeight,
+                                          direction,
+                                          velocity,
+                                          flpos,
+                                          brpos,
+                                          type,
+                                          stopped);
         player.sendMessage("Successfully created world border");
     }
 }

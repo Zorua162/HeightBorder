@@ -27,6 +27,7 @@ public class CommandManager implements TabExecutor {
         subcommands.add(new DeleteCommand(heightBorder));
         subcommands.add(new SetCommand(heightBorder));
         subcommands.add(new SetupCommand(heightBorder));
+        subcommands.add(new StartCommand(heightBorder));
     }
 
     @Override

@@ -49,9 +49,12 @@ public class Border implements ConfigurationSerializable {
     int previousBreakLayer = 0;
     WarningManager warningManager;
 
+    private Boolean stopped;
+
     public Border(double currentHeight, double endHeight, String direction, double velocity, Location pos1,
                   Location pos2, Boolean damagePlayers, Boolean breakBlocks, Boolean displayBorderParticles,
-                  Integer numberOfParticles, int damageWait, int breakWait, int displayWait, int moveWait) {
+                  Integer numberOfParticles, int damageWait, int breakWait, int displayWait, int moveWait,
+                  Boolean stopped) {
         this.currentHeight = currentHeight;
         this.endHeight = endHeight;
         this.direction = direction;
@@ -66,6 +69,7 @@ public class Border implements ConfigurationSerializable {
         this.breakWait = breakWait;
         this.displayWait = displayWait;
         this.moveWait = moveWait;
+        this.stopped = stopped;
         putMapColours();
     }
 
@@ -96,8 +100,11 @@ public class Border implements ConfigurationSerializable {
         result.put("breakWait", this.getBreakWait());
         result.put("displayWait", this.getDisplayWait());
         result.put("moveWait", this.getMoveWait());
+        result.put("stopped", this.getStopped());
         return result;
     }
+
+    private Boolean getStopped() { return stopped; }
 
     private int getMoveWait() {
         return displayWait;
@@ -171,6 +178,7 @@ public class Border implements ConfigurationSerializable {
         int breakWait = 20;
         int displayWait = 20;
         int moveWait = 20;
+        Boolean stopped = null;
 
         int numberOfParticles = 100;
 
@@ -229,28 +237,30 @@ public class Border implements ConfigurationSerializable {
         if(args.containsKey("moveWait")) {
             moveWait = ((Integer)args.get("moveWait"));
         }
+        if (args.containsKey("stopped")) {
+            stopped = ((boolean) args.get("stopped"));
+        }
         return new Border(currentHeight, endHeight, direction, velocity, pos1, pos2, damagePlayers, breakBlocks,
-                displayBorderParticles, numberOfParticles, damageWait, breakWait, displayWait, moveWait);
+                displayBorderParticles, numberOfParticles, damageWait, breakWait, displayWait, moveWait, stopped);
     }
 
     public String getListInfo() {
-        StringBuilder outData = new StringBuilder();
-        outData.append(" - Y = ").append(currentHeight);
-        outData.append("\n - End height = ").append(endHeight);
-        outData.append("\n - Direction = ").append(direction);
-        outData.append("\n - Velocity = ").append(velocity);
-        outData.append("\n - Pos1 = ").append(pos1.toString());
-        outData.append("\n - Pos2 = ").append(pos2.toString());
-        outData.append("\n - Particle colour = ").append(particleColour.toString());
-        outData.append("\n - Damage players = ").append(damagePlayers);
-        outData.append("\n - Break blocks = ").append(breakBlocks);
-        outData.append("\n - Display border particles = ").append(displayBorderParticles);
-        outData.append("\n - Number of particles = ").append(numberOfParticles);
-        outData.append("\n - Damage pause = ").append(damageWait);
-        outData.append("\n - Break pause = ").append(breakWait);
-        outData.append("\n - Display pause = ").append(displayWait);
-        outData.append("\n - move pause = ").append(moveWait);
-        return outData.toString();
+        return " - Y = " + currentHeight +
+                "\n - End height = " + endHeight +
+                "\n - Direction = " + direction +
+                "\n - Velocity = " + velocity +
+                "\n - Pos1 = " + pos1.toString() +
+                "\n - Pos2 = " + pos2.toString() +
+                "\n - Particle colour = " + particleColour.toString() +
+                "\n - Damage players = " + damagePlayers +
+                "\n - Break blocks = " + breakBlocks +
+                "\n - Display border particles = " + displayBorderParticles +
+                "\n - Number of particles = " + numberOfParticles +
+                "\n - Damage pause = " + damageWait +
+                "\n - Break pause = " + breakWait +
+                "\n - Display pause = " + displayWait +
+                "\n - move pause = " + moveWait +
+                "\n - stopped = " + stopped;
     }
 
     private int getMax(int n1, int n2) {
@@ -475,6 +485,12 @@ public class Border implements ConfigurationSerializable {
 
     public void runTasks(HeightBorder plugin) {
         tickCount++;
+
+        // Don't do anything to the border if
+        if (stopped) {
+            return;
+        }
+
         // Call border methods, but only on the period defined by each method's pause variable
         if ((tickCount % damageWait) == 0) {
             doDamage();
@@ -530,5 +546,9 @@ public class Border implements ConfigurationSerializable {
         double heightDifference = player.getLocation().getY() - currentHeight;
         int roundHeightDifference = (int) heightDifference;
         return roundHeightDifference;
+    }
+
+    public void startBorder() {
+        stopped = false;
     }
 }

@@ -2,10 +2,7 @@ package me.zorua162.heightborder.commands;
 
 
 import me.zorua162.heightborder.HeightBorder;
-import me.zorua162.heightborder.commands.subcommands.CreateCommand;
-import me.zorua162.heightborder.commands.subcommands.DeleteCommand;
-import me.zorua162.heightborder.commands.subcommands.ListCommand;
-import me.zorua162.heightborder.commands.subcommands.SetCommand;
+import me.zorua162.heightborder.commands.subcommands.*;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -29,6 +26,7 @@ public class CommandManager implements TabExecutor {
         subcommands.add(new CreateCommand(heightBorder));
         subcommands.add(new DeleteCommand(heightBorder));
         subcommands.add(new SetCommand(heightBorder));
+        subcommands.add(new SetupCommand(heightBorder));
     }
 
     @Override

@@ -9,9 +9,12 @@ import org.bukkit.block.Block;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.configuration.serialization.SerializableAs;
 import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageEvent;
 
 import java.util.*;
 import java.util.logging.Logger;
+
+import static java.lang.Math.abs;
 
 @SerializableAs("Border")
 public class Border implements ConfigurationSerializable {
@@ -64,8 +67,10 @@ public class Border implements ConfigurationSerializable {
         this.displayWait = displayWait;
         this.moveWait = moveWait;
         putMapColours();
-        HeightBorder plugin = (HeightBorder) Bukkit.getPluginManager().getPlugin("HeightBorder");
-        warningManager = plugin.getBorderManager().getWarningManager();
+    }
+
+    public void setManager(WarningManager warningManager) {
+        this.warningManager = warningManager;
     }
 
     public void putMapColours() {
@@ -127,11 +132,11 @@ public class Border implements ConfigurationSerializable {
         return numberOfParticles;
     }
 
-    private double getEndHeight() {
+    public double getEndHeight() {
         return endHeight;
     }
 
-    private double getCurrentHeight() {
+    public double getCurrentHeight() {
         return currentHeight;
     }
 
@@ -143,7 +148,7 @@ public class Border implements ConfigurationSerializable {
         return this.pos1;
     }
 
-    private String getDirection() {
+    public String getDirection() {
         return this.direction;
     }
 
@@ -238,8 +243,8 @@ public class Border implements ConfigurationSerializable {
         outData.append("\n - Pos2 = ").append(pos2.toString());
         outData.append("\n - Particle colour = ").append(particleColour.toString());
         outData.append("\n - Damage players = ").append(damagePlayers);
-        outData.append("\n - Break blocks= ").append(breakBlocks);
-        outData.append("\n - Display border particles= ").append(displayBorderParticles);
+        outData.append("\n - Break blocks = ").append(breakBlocks);
+        outData.append("\n - Display border particles = ").append(displayBorderParticles);
         outData.append("\n - Number of particles = ").append(numberOfParticles);
         outData.append("\n - Damage pause = ").append(damageWait);
         outData.append("\n - Break pause = ").append(breakWait);
@@ -357,7 +362,16 @@ public class Border implements ConfigurationSerializable {
         }
     }
 
-    public void doDamage() {
+    public Boolean checkOutsideBorder(Player player) {
+        // Check if the player should be damaged or not
+        if (direction.equals("down")) {
+            return player.getLocation().getY() + 1 > currentHeight;
+        } else {
+            return player.getLocation().getY() - 1 < currentHeight;
+        }
+    }
+
+        public void doDamage() {
         // check if border should do damage
         if (!damagePlayers) {
             return;
@@ -365,14 +379,8 @@ public class Border implements ConfigurationSerializable {
         // get players in border's world and damage if outside of it
         List<Player> players = pos1.getWorld().getPlayers();
         for (Player player: players) {
-            if (direction.equals("down")) {
-                if (player.getLocation().getY() + 1 > currentHeight) {
-                    player.damage(0.5);
-                }
-            } else {
-                if (player.getLocation().getY() - 1 < currentHeight) {
-                    player.damage(0.5);
-                }
+            if (checkOutsideBorder(player)) {
+                player.damage(0.5, player);
             }
         }
     }
@@ -515,5 +523,12 @@ public class Border implements ConfigurationSerializable {
                 }
             }
         }
+    }
+
+    public Integer getDistance(Player player) {
+        // Return a string containing info about where the border is in comparison to the player
+        double heightDifference = player.getLocation().getY() - currentHeight;
+        int roundHeightDifference = (int) heightDifference;
+        return roundHeightDifference;
     }
 }

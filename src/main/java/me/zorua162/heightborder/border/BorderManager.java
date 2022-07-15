@@ -9,6 +9,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -39,9 +40,19 @@ public class BorderManager {
         numberOfParticles = config.getInt("numberOfParticles");
         if (configBorderList != null){
             borderArray = configBorderList;
+            // remove null borders
+            borderArray.removeAll(Collections.singleton(null));
+            saveBorders();
+
         } else {
             Logger logger = plugin.getLogger();
             logger.warning("Could not load borders from save file config.yml");
+        }
+
+        warningManager = new WarningManager(this);
+
+        for (Border border : borderArray) {
+            border.setManager(warningManager);
         }
 
         // Kick off border tasks
@@ -50,13 +61,10 @@ public class BorderManager {
         // For stopping user from setting value to 0 as division error would occur
         zeroNotAllowed = Arrays.asList("damagewait", "breakwait", "movewait", "displaywait");
 
-        warningManager = new WarningManager(this);
 
     }
 
-    private void runBorderTasks(Border border) {
-        border.runTasks(plugin);
-    }
+    private void runBorderTasks(Border border) {border.runTasks(plugin);}
 
     public Border createBorder(Player player, double startHeight, double endHeight, String direction, double velocity,
                                Location flpos, Location brpos, String type){
@@ -84,6 +92,7 @@ public class BorderManager {
         }
         Border border = new Border(startHeight, endHeight, direction, velocity, flpos, brpos, damagePlayers,
                 breakBlocks, displayBorderParticles, numberOfParticles, damageWait, breakWait, displayWait, moveWait);
+        border.setManager(warningManager);
         borderArray.add(border);
         saveBorders();
         return border;
@@ -100,12 +109,20 @@ public class BorderManager {
         return borderList;
     }
     public String deleteBorder(String id) {
+        if (id.equalsIgnoreCase("all")) {
+            //remove all borders
+            borderArray.clear();
+            saveBorders();
+            warningManager.clearWarnings();
+            return "Success";
+        }
         int intId = Integer.parseInt(id);
-       if (intId>borderArray.size()){
-           return "index out of range";
-       } else if (intId == 0){
+        if (intId>borderArray.size()){
+            return "index out of range";
+        } else if (intId == 0){
           return "Use id 1-n not index";
         }
+        warningManager.clearWarnings();
        borderArray.remove(intId-1);
        saveBorders();
        return "Success";
@@ -190,4 +207,36 @@ public class BorderManager {
         return "Something went wrong";
     }
     public WarningManager getWarningManager() {return this.warningManager;}
+    public void setupBorders(Player player, String[] args) {
+        int timeToFinish;
+        if (args.length == 1) {
+            player.sendMessage("The center height of the end box needs to be specified");
+            return;
+        }
+        if (args.length == 3) {
+            timeToFinish = Integer.parseInt(args[2]);
+        } else {
+            timeToFinish = 20;
+        }
+        int topStartHeight = 320;
+        int bottomStartHeight = -64;
+
+        int endCenter =  Integer.parseInt(args[1]);
+
+        int topEndHeight = endCenter + 5;
+        int bottomEndHeight = endCenter - 5;
+
+        int topBorderVelocity = (topStartHeight - topEndHeight)/timeToFinish;
+        int bottomBorderVelocity = (bottomEndHeight - bottomStartHeight )/timeToFinish;
+
+        Location flpos = new Location(player.getWorld(), -5, topStartHeight, 5);
+        Location brpos = new Location(player.getWorld(), 5, bottomStartHeight, -5);
+
+        createBorder(player, topStartHeight, topEndHeight, "down", topBorderVelocity, flpos,
+                brpos, "damage");
+        createBorder(player, bottomStartHeight, bottomEndHeight, "up", bottomBorderVelocity, flpos,
+                brpos, "damage");
+        player.sendMessage("Creating borders");
+    }
 }
+

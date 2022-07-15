@@ -26,6 +26,8 @@ public final class HeightBorder extends JavaPlugin {
     // Implement with border "type" being either "break" or "damage"
     //
     // TODO list:
+    // Send spectators the current y level of the borders
+    // Send players a colour coded arrow to warn them how close the arrows are
     // Allow applicable commands to be called from command prompt such as set, list, delete
     // Allow for the block warning distance (and time) to be set for screen reddening
     // save to file:
@@ -36,8 +38,7 @@ public final class HeightBorder extends JavaPlugin {
     // Show break block animation on blocks before breaking them
     // Make particle colour configurable from config
     // Tick times of all tasks editable, either via config and pre gen or similar solution to damagepause
-    // Custom death message by checking PlayerDeathEvent
-    
+
     FileConfiguration config;
     public BorderManager borderManager;
     public WorldBorderApi worldBorderApi;

@@ -9,3 +9,8 @@ commands:
     usage: /<command> <subcommands>
     permission: world-border.command.heightborder
     aliases: ["hb"]
+  toggledisplay:
+    description: toggle whether the borders distance is displayed in the action bar
+    usage: /toggledisplay
+    permission: world-border.command.toggledisplay
+    aliases: ["td"]

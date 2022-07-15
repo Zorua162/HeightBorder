@@ -4,6 +4,7 @@ import com.github.yannicklamprecht.worldborder.api.WorldBorderApi;
 import me.zorua162.heightborder.border.Border;
 import me.zorua162.heightborder.border.BorderManager;
 import me.zorua162.heightborder.commands.CommandManager;
+import me.zorua162.heightborder.commands.ToggleDisplay;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -51,6 +52,7 @@ public final class HeightBorder extends JavaPlugin {
         borderManager.setup(config);
         setupWorldBorderAPI();
         getCommand("heightborder").setExecutor(new CommandManager(this));
+        getCommand("toggledisplay").setExecutor(new ToggleDisplay(this));
         // TODO reload from file and with saved wbders
     }
 

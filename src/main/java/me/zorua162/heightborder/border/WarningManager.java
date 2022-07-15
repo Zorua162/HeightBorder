@@ -11,7 +11,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static java.lang.Math.abs;
@@ -24,6 +26,7 @@ public class WarningManager {
     // Reddened list: If a player is in the list then they should be reddened
     // if they are not in the list then they shouldn't be reddened
     Map<Player, Map<Border, Boolean>> reddenedMap = new HashMap<>();
+    List<Player> disablePlayerDisplay = new ArrayList<Player>();
     public WarningManager(BorderManager borderManager) {
        this.borderManager = borderManager;
     }
@@ -53,9 +56,9 @@ public class WarningManager {
         if (integer < 16) {
             outString = "0" + hexValue;
         } else if (integer > 255) {
-            outString = hexValue;
-        } else {
             outString = "FF";
+        } else {
+            outString = hexValue;
         }
         return outString;
     }
@@ -89,17 +92,17 @@ public class WarningManager {
 
         } else {
             if (rgbNumber > 0) {
-                colourHexString = String.format("#FC%S00", intToHex(255 - rgbNumber));
+                colourHexString = String.format("#FC%s00", intToHex(255 - rgbNumber));
             } else {
                 // rgbNumber = 255 - abs(rgbNumber);
-                colourHexString = String.format("#%SFC00", intToHex(255 - abs(rgbNumber)));
+                colourHexString = String.format("#%sFC00", intToHex(255 - abs(rgbNumber)));
             }
 
             // Bukkit.getLogger().info(String.valueOf(rgbNumber));
             // Bukkit.getLogger().info(colourHexString);
             component.setColor(ChatColor.of(colourHexString));
             // component.setColor(ChatColor.of("#123456"));
-            component.addExtra(colourHexString);
+            // component.addExtra(" " + colourHexString + " " + rgbNumber + " ");
         }
         return component;
     }
@@ -128,8 +131,12 @@ public class WarningManager {
     }
 
     private void sendDistanceDisplay(Player player) {
+        // If player has disabled the display then don't display it
+        if (disablePlayerDisplay.contains(player)) {
+            return;
+        }
         // Send the current distances to borders to the players
-        ComponentBuilder toSend = new ComponentBuilder("Height Border distances| ");
+        ComponentBuilder toSend = new ComponentBuilder("Height Border distances | ");
         for (Border border : reddenedMap.get(player).keySet()) {
             int distance = border.getDistance(player);
             toSend.append(buildWarningMessage(player, distance, border).create());
@@ -137,11 +144,6 @@ public class WarningManager {
             divider.setColor(ChatColor.WHITE);
             toSend.append(divider);
         }
-        // delete unneeded separator
-
-        // toSend.delete(toSend.length()-2, toSend.length()-1);
-        // Then send to player as a title
-        // player.sendTitle("", toSend.toString(), 0, 20, 0);
         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, toSend.create());
     }
 
@@ -192,5 +194,14 @@ public class WarningManager {
 
     public void clearWarnings() {
         reddenedMap.clear();
+    }
+
+    public Boolean toggleDisplay(Player p) {
+       if (disablePlayerDisplay.contains(p)) {
+           disablePlayerDisplay.remove(p);
+           return true;
+       }
+       disablePlayerDisplay.add(p);
+       return false;
     }
 }

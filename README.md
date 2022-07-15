@@ -1,7 +1,10 @@
 # HeightBorder
 Minecraft plugin that implements a world border that stops players from being too high. 
 
-Currently, only for 1.18.1, but I might backport the plugin if it is requested.
+For 1.19 version of minecraft.
+
+Requires worldborderapi this can be found here:
+https://github.com/yannicklamprecht/WorldBorderAPI/releases/tag/1.190.1
 
 The primary idea for this plugin is for it to be used at the end of a UHC to stop players from camping
 in sky bases and extending the game time too long.

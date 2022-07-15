@@ -8,9 +8,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 
+import java.util.Collections;
 import java.util.List;
 
-public class ToggleDisplay implements CommandExecutor {
+public class ToggleDisplay implements TabExecutor{
 
     HeightBorder heightBorder;
 
@@ -38,4 +39,9 @@ public class ToggleDisplay implements CommandExecutor {
         return true;
     }
 
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        // remove default tab completion of player names
+        return Collections.emptyList();
+    }
 }
